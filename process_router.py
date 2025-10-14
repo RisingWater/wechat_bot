@@ -86,20 +86,6 @@ class ProcessRouter:
             processor_names = self.chat_name_processor_config[chat_name]
             logger.info(f"精确匹配聊天名称 '{chat_name}' -> {processor_names}")
         
-        # 2. 检查是否是命令消息（只有在支持cmd_processor的聊天中才处理命令）
-        if message_content and message_content.strip() in self.cmd_list:
-            # 只有在当前聊天已经配置了cmd_processor的情况下才保留
-            if "cmd_processor" in processor_names:
-                logger.info(f"检测到命令消息 '{message_content}' -> 使用 cmd_processor")
-            else:
-                # 如果不支持cmd_processor，即使收到命令也不处理
-                logger.info(f"检测到命令消息 '{message_content}'，但当前聊天不支持cmd_processor，忽略命令")
-        else:
-            # 如果不是命令消息，且当前聊天配置了cmd_processor，则移除cmd_processor
-            if "cmd_processor" in processor_names:
-                processor_names.remove("cmd_processor")
-                logger.info(f"非命令消息，移除 cmd_processor")
-        
         # 去重并返回处理器实例
         unique_names = list(set(processor_names))
         valid_processors = [self.processors[name] for name in unique_names if name in self.processors]
