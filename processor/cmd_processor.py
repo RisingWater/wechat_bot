@@ -191,7 +191,7 @@ class CmdProcessor:
                     response_msg = self._get_command_response(command, success=False)
                     wxauto_client.send_text_message(who=chat_name, msg=response_msg)
                     logger.error(f"Command '{command}' execution failed for {chat_name}")
-                    return False
+                    return True
             else:
                 logger.error(f"Unknown command: {command}")
                 return False
