@@ -3,6 +3,8 @@ import os
 import time
 import logging
 import json
+import threading
+import queue
 from pathlib import Path
 from wxauto import WXAuto
 from homework import HomeworkProcessor
@@ -23,6 +25,11 @@ class MainLoopProcessor:
         self.homework_processor = HomeworkProcessor(env_file)
         self.download_path = self._get_download_path()
         self.running = False
+        
+        # Message queue for async processing
+        self.message_queue = queue.Queue()
+        self.processing_threads = []
+        self.max_workers = 3  # Maximum concurrent processing threads
         
     def _get_download_path(self):
         """Get download path from environment"""
@@ -76,9 +83,36 @@ class MainLoopProcessor:
         
         return image_messages
     
-    def process_message_batch(self, message_result):
+    def process_single_image_async(self, image_msg):
         """
-        Process a batch of messages
+        Process a single image message asynchronously
+        
+        Args:
+            image_msg (dict): Image message data
+        """
+        try:
+            logger.info(f"Async processing started for: {image_msg['file_name']}")
+            
+            # Process each image with OCR using homework processor
+            ocr_result = self.homework_processor.process_image_with_ocr(
+                image_path=image_msg['file_path'],
+                chat_name=image_msg['chat_name']
+            )
+            
+            # Handle the OCR result using homework processor
+            self.homework_processor.handle_ocr_result(
+                ocr_result=ocr_result,
+                wxauto_client=self.wxauto
+            )
+            
+            logger.info(f"Async processing completed for: {image_msg['file_name']}")
+            
+        except Exception as e:
+            logger.error(f"Error in async processing for {image_msg['file_name']}: {str(e)}")
+    
+    def process_message_batch_async(self, message_result):
+        """
+        Process a batch of messages asynchronously
         
         Args:
             message_result (dict): Result from get_next_new_message
@@ -98,40 +132,67 @@ class MainLoopProcessor:
         image_messages = self.extract_image_messages(message_result)
         
         for image_msg in image_messages:
-            # Process each image with OCR using homework processor
-            ocr_result = self.homework_processor.process_image_with_ocr(
-                image_path=image_msg['file_path'],
-                chat_name=image_msg['chat_name']
+            # Start async processing for each image
+            thread = threading.Thread(
+                target=self.process_single_image_async,
+                args=(image_msg,),
+                daemon=True
             )
+            thread.start()
+            self.processing_threads.append(thread)
             
-            # Handle the OCR result using homework processor
-            self.homework_processor.handle_ocr_result(
-                ocr_result=ocr_result,
-                wxauto_client=self.wxauto
-            )
+            # Limit the number of concurrent threads
+            if len(self.processing_threads) >= self.max_workers:
+                # Wait for some threads to complete before starting new ones
+                self._cleanup_finished_threads()
     
-    def main_loop(self, check_interval=3):
+    def _cleanup_finished_threads(self):
+        """Remove finished threads from the list"""
+        self.processing_threads = [t for t in self.processing_threads if t.is_alive()]
+    
+    def message_listener_loop(self, check_interval=3):
         """
-        Main processing loop
+        Main message listener loop - runs in main thread
         
         Args:
             check_interval (int): Interval between checks in seconds
         """
-        self.running = True
-        logger.info("Starting main loop...")
-        logger.info(f"Download path: {self.download_path}")
-        logger.info(f"Check interval: {check_interval}s")
+        logger.info("Starting message listener loop...")
         
         try:
             while self.running:
                 # Get new messages
                 message_result = self.wxauto.get_next_new_message()
                 
-                # Process the messages
-                self.process_message_batch(message_result)
+                # Process the messages asynchronously
+                self.process_message_batch_async(message_result)
+                
+                # Clean up finished threads
+                self._cleanup_finished_threads()
                 
                 # Wait before next check
                 time.sleep(check_interval)
+                
+        except Exception as e:
+            logger.error(f"Error in message listener loop: {str(e)}")
+            raise
+    
+    def main_loop(self, check_interval=3):
+        """
+        Main processing loop with async processing
+        
+        Args:
+            check_interval (int): Interval between checks in seconds
+        """
+        self.running = True
+        logger.info("Starting main loop with async processing...")
+        logger.info(f"Download path: {self.download_path}")
+        logger.info(f"Check interval: {check_interval}s")
+        logger.info(f"Max concurrent workers: {self.max_workers}")
+        
+        try:
+            # Start the message listener loop
+            self.message_listener_loop(check_interval)
                 
         except KeyboardInterrupt:
             logger.info("Main loop interrupted by user")
@@ -140,16 +201,28 @@ class MainLoopProcessor:
         finally:
             self.running = False
             logger.info("Main loop stopped")
+            
+            # Wait for all processing threads to complete
+            self._wait_for_all_threads()
+    
+    def _wait_for_all_threads(self):
+        """Wait for all processing threads to complete"""
+        logger.info("Waiting for all processing threads to complete...")
+        for thread in self.processing_threads:
+            if thread.is_alive():
+                thread.join(timeout=10)  # Wait up to 10 seconds for each thread
+        logger.info("All processing threads completed")
     
     def stop(self):
         """Stop the main loop"""
         self.running = False
         logger.info("Stopping main loop...")
+        self._wait_for_all_threads()
 
 
 def main():
     """Main function"""
-    print("Starting Main Loop Processor...")
+    print("Starting Main Loop Processor with Async Processing...")
     
     # Create processor instance
     processor = MainLoopProcessor()
