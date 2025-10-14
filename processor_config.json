@@ -1,0 +1,12 @@
+{
+    "chat_name_processor_config": {
+      "作业识别": ["homework_processor"],
+      "文件打印": ["print_processor"],
+      "王旭": ["cmd_processor", "chat_processor"],
+      "心颖": ["chat_processor"]
+    },
+    "cmd_list": [
+      "打开电视",
+      "关闭电视"
+    ]
+  }
