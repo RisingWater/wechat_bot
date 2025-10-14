@@ -170,8 +170,8 @@ class BaiduOCR:
         """
         Main method for handwriting recognition
         """
-        #return self._process_image(image_path, **kwargs)
-        return self._fake_process_image(image_path, **kwargs)
+        return self._process_image(image_path, **kwargs)
+        #return self._fake_process_image(image_path, **kwargs)
 
 
 # Test function
