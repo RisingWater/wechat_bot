@@ -3,8 +3,6 @@ import os
 import time
 import logging
 import json
-import threading
-import queue
 from pathlib import Path
 from wxauto import WXAuto
 from homework import HomeworkProcessor
@@ -25,11 +23,6 @@ class MainLoopProcessor:
         self.homework_processor = HomeworkProcessor(env_file)
         self.download_path = self._get_download_path()
         self.running = False
-        
-        # Message queue for async processing
-        self.message_queue = queue.Queue()
-        self.processing_threads = []
-        self.max_workers = 3  # Maximum concurrent processing threads
         
     def _get_download_path(self):
         """Get download path from environment"""
@@ -83,15 +76,18 @@ class MainLoopProcessor:
         
         return image_messages
     
-    def process_single_image_async(self, image_msg):
+    def process_single_image(self, image_msg):
         """
-        Process a single image message asynchronously
+        Process a single image message synchronously
         
         Args:
             image_msg (dict): Image message data
+            
+        Returns:
+            bool: True if processing successful, False otherwise
         """
         try:
-            logger.info(f"Async processing started for: {image_msg['file_name']}")
+            logger.info(f"Processing image: {image_msg['file_name']}")
             
             # Process each image with OCR using homework processor
             ocr_result = self.homework_processor.process_image_with_ocr(
@@ -100,99 +96,138 @@ class MainLoopProcessor:
             )
             
             # Handle the OCR result using homework processor
-            self.homework_processor.handle_ocr_result(
+            success = self.homework_processor.handle_ocr_result(
                 ocr_result=ocr_result,
                 wxauto_client=self.wxauto
             )
             
-            logger.info(f"Async processing completed for: {image_msg['file_name']}")
+            if success:
+                logger.info(f"Successfully processed image: {image_msg['file_name']}")
+            else:
+                logger.warning(f"Failed to process image: {image_msg['file_name']}")
+            
+            return success
             
         except Exception as e:
-            logger.error(f"Error in async processing for {image_msg['file_name']}: {str(e)}")
+            logger.error(f"Error processing {image_msg['file_name']}: {str(e)}")
+            return False
     
-    def process_message_batch_async(self, message_result):
+    def process_message_batch(self, message_result):
         """
-        Process a batch of messages asynchronously
+        Process a batch of messages synchronously
         
         Args:
             message_result (dict): Result from get_next_new_message
+            
+        Returns:
+            int: Number of images processed
         """
         if not message_result.get("success"):
             logger.error(f"Failed to get messages: {message_result.get('error')}")
-            return
+            return 0
         
         if not message_result.get("has_message"):
             # No new messages
-            return
+            return 0
         
         chat_name = message_result.get("chat_name")
         logger.info(f"Processing messages from: {chat_name}")
         
-        # Extract and process image messages
+        # Extract image messages
         image_messages = self.extract_image_messages(message_result)
         
+        # Process each image synchronously
+        processed_count = 0
         for image_msg in image_messages:
-            # Start async processing for each image
-            thread = threading.Thread(
-                target=self.process_single_image_async,
-                args=(image_msg,),
-                daemon=True
-            )
-            thread.start()
-            self.processing_threads.append(thread)
-            
-            # Limit the number of concurrent threads
-            if len(self.processing_threads) >= self.max_workers:
-                # Wait for some threads to complete before starting new ones
-                self._cleanup_finished_threads()
+            success = self.process_single_image(image_msg)
+            if success:
+                processed_count += 1
+        
+        # Also process voice messages if any
+        voice_messages = self.extract_voice_messages(message_result)
+        for voice_msg in voice_messages:
+            self.process_voice_message(voice_msg)
+        
+        logger.info(f"Processed {processed_count} images from {chat_name}")
+        return processed_count
     
-    def _cleanup_finished_threads(self):
-        """Remove finished threads from the list"""
-        self.processing_threads = [t for t in self.processing_threads if t.is_alive()]
-    
-    def message_listener_loop(self, check_interval=3):
+    def extract_voice_messages(self, message_result):
         """
-        Main message listener loop - runs in main thread
+        Extract voice messages from message result
+        
+        Args:
+            message_result (dict): Result from get_next_new_message
+            
+        Returns:
+            list: List of voice messages with text content
+        """
+        if not message_result.get("success") or not message_result.get("has_message"):
+            return []
+        
+        voice_messages = []
+        for msg in message_result.get("messages", []):
+            if (msg.get("type") == "voice" and 
+                "Voice" in msg.get("class", "") and
+                msg.get("voice_convert_success") == True and
+                msg.get("voice_to_text")):
+                
+                voice_messages.append({
+                    "chat_name": msg.get("chat_name"),
+                    "voice_text": msg.get("voice_to_text"),
+                    "message_id": msg.get("id"),
+                    "raw_message": msg
+                })
+                logger.info(f"Found voice message: {msg.get('voice_to_text')[:50]}...")
+        
+        return voice_messages
+    
+    def process_voice_message(self, voice_msg):
+        """
+        Process a voice message
+        
+        Args:
+            voice_msg (dict): Voice message data
+        """
+        try:
+            logger.info(f"Processing voice message from: {voice_msg['chat_name']}")
+            logger.info(f"Voice content: {voice_msg['voice_text']}")
+            
+            # Here you can add logic to handle voice message content
+            # For example, check for specific commands or keywords
+            
+            # Example: If voice contains "作业" keyword, trigger homework processing
+            if "作业" in voice_msg['voice_text']:
+                logger.info("Detected homework-related voice message")
+                # Add your specific logic here
+            
+        except Exception as e:
+            logger.error(f"Error processing voice message: {str(e)}")
+    
+    def main_loop(self, check_interval=3):
+        """
+        Main processing loop with synchronous processing
         
         Args:
             check_interval (int): Interval between checks in seconds
         """
-        logger.info("Starting message listener loop...")
+        self.running = True
+        logger.info("Starting main loop with synchronous processing...")
+        logger.info(f"Download path: {self.download_path}")
+        logger.info(f"Check interval: {check_interval}s")
+        
+        total_processed = 0
         
         try:
             while self.running:
                 # Get new messages
                 message_result = self.wxauto.get_next_new_message()
                 
-                # Process the messages asynchronously
-                self.process_message_batch_async(message_result)
-                
-                # Clean up finished threads
-                self._cleanup_finished_threads()
+                # Process the messages synchronously
+                processed_count = self.process_message_batch(message_result)
+                total_processed += processed_count
                 
                 # Wait before next check
                 time.sleep(check_interval)
-                
-        except Exception as e:
-            logger.error(f"Error in message listener loop: {str(e)}")
-            raise
-    
-    def main_loop(self, check_interval=3):
-        """
-        Main processing loop with async processing
-        
-        Args:
-            check_interval (int): Interval between checks in seconds
-        """
-        self.running = True
-        logger.info("Starting main loop with async processing...")
-        logger.info(f"Download path: {self.download_path}")
-        logger.info(f"Check interval: {check_interval}s")
-        logger.info(f"Max concurrent workers: {self.max_workers}")
-        
-        try:
-            # Start the message listener loop
-            self.message_listener_loop(check_interval)
                 
         except KeyboardInterrupt:
             logger.info("Main loop interrupted by user")
@@ -200,29 +235,17 @@ class MainLoopProcessor:
             logger.error(f"Error in main loop: {str(e)}")
         finally:
             self.running = False
-            logger.info("Main loop stopped")
-            
-            # Wait for all processing threads to complete
-            self._wait_for_all_threads()
-    
-    def _wait_for_all_threads(self):
-        """Wait for all processing threads to complete"""
-        logger.info("Waiting for all processing threads to complete...")
-        for thread in self.processing_threads:
-            if thread.is_alive():
-                thread.join(timeout=10)  # Wait up to 10 seconds for each thread
-        logger.info("All processing threads completed")
+            logger.info(f"Main loop stopped. Total images processed: {total_processed}")
     
     def stop(self):
         """Stop the main loop"""
         self.running = False
         logger.info("Stopping main loop...")
-        self._wait_for_all_threads()
 
 
 def main():
     """Main function"""
-    print("Starting Main Loop Processor with Async Processing...")
+    print("Starting Main Loop Processor with Synchronous Processing...")
     
     # Create processor instance
     processor = MainLoopProcessor()
