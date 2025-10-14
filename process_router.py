@@ -87,8 +87,12 @@ class ProcessRouter:
             logger.info(f"精确匹配聊天名称 '{chat_name}' -> {processor_names}")
         
         # 去重并返回处理器实例
-        unique_names = list(set(processor_names))
-        valid_processors = [self.processors[name] for name in unique_names if name in self.processors]
+        valid_processors = []
+        for name in processor_names:
+            if name in self.processors:
+                valid_processors.append(self.processors[name])
+            else:
+                logger.warning(f"处理器未注册: {name}")
         
         if not valid_processors:
             logger.info(f"没有找到匹配的处理器 for chat: {chat_name}")
