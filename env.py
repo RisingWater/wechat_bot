@@ -41,6 +41,11 @@ class EnvConfig:
             'download_path': self.get('WXAUTO_DOWNLOAD_PATH')
         }
 
+    def get_mitv_config(self):
+        """Get MiTv configuration"""
+        return {
+            'ip': self.get('MITV_IP')
+        }
 
 # Test function
 def main():
