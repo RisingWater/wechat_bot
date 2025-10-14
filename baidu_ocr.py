@@ -10,16 +10,16 @@ logger = logging.getLogger(__name__)
 
 class BaiduOCR:
     def __init__(self, env_file=".env"):
-        self.config = EnvConfig(env_file)
-        self.bearer_token = None
+        self._config = EnvConfig(env_file)
+        self._bearer_token = None
         self._load_config()
     
     def _load_config(self):
         """Load Baidu OCR configuration"""
-        baidu_config = self.config.get_baidu_ocr_config()
-        self.bearer_token = baidu_config['api_key']
+        baidu_config = self._config.get_baidu_ocr_config()
+        self._bearer_token = baidu_config['api_key']
         
-        if not self.bearer_token :
+        if not self._bearer_token :
             logger.warning("Baidu OCR API key not found in environment")
     
     def _get_file_content_as_base64(self, path, urlencoded=False):
@@ -60,7 +60,7 @@ class BaiduOCR:
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json',
-                'Authorization': f'Bearer {self.bearer_token}'
+                'Authorization': f'Bearer {self._bearer_token}'
             }
             
             # Make request

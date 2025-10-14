@@ -4,13 +4,13 @@ from pathlib import Path
 
 class EnvConfig:
     def __init__(self, env_file=".env"):
-        self.env_file = Path(env_file)
+        self._env_file = Path(env_file)
         self._load_env()
     
     def _load_env(self):
         """Load environment variables from .env file"""
-        if self.env_file.exists():
-            with open(self.env_file, 'r') as f:
+        if self._env_file.exists():
+            with open(self._env_file, 'r') as f:
                 for line in f:
                     line = line.strip()
                     if line and not line.startswith('#') and '=' in line:
@@ -37,7 +37,8 @@ class EnvConfig:
         """Get DeepSeek configuration"""
         return {
             'api_key': self.get('WXAUTO_API_KEY'),
-            'api_url': self.get('WXAUTO_API_URL')
+            'api_url': self.get('WXAUTO_API_URL'),
+            'download_path': self.get('WXAUTO_DOWNLOAD_PATH')
         }
 
 

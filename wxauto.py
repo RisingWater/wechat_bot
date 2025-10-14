@@ -83,6 +83,86 @@ class WXAuto:
             error_msg = f"Unexpected error: {str(e)}"
             logger.error(error_msg)
             return {"success": False, "error": error_msg}
+        
+    def get_next_new_message(self, wxname="", filter_mute=False):
+        """
+        Get next new message via WXAuto API
+        
+        Args:
+            wxname (str): WeChat name (optional)
+            filter_mute (bool): Whether to filter muted chats
+            
+        Returns:
+            dict: API response with message data
+        """
+        if not self._api_url or not self._token:
+            error_msg = "WXAuto API URL or Token not configured"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+        
+        try:
+            url = f"{self._api_url}/v1/wechat/getnextnewmessage"
+            
+            headers = {
+                'accept': 'application/json',
+                'Authorization': f'Bearer {self._token}',
+                'Content-Type': 'application/json'
+            }
+            
+            payload = {
+                "wxname": wxname,
+                "filter_mute": filter_mute
+            }
+            
+            logger.info("Getting next new message...")
+            
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                if result.get("success"):
+                    message_data = result.get("data", {})
+                    messages = message_data.get("msg", [])
+                    
+                    if messages:
+                        logger.info(f"Received new message from '{message_data.get('chat_name', 'Unknown')}'")
+                        return {
+                            "success": True,
+                            "has_message": True,
+                            "chat_name": message_data.get("chat_name"),
+                            "chat_type": message_data.get("chat_type"),
+                            "messages": messages,
+                            "raw_data": result
+                        }
+                    else:
+                        logger.info("No new messages")
+                        return {
+                            "success": True,
+                            "has_message": False,
+                            "raw_data": result
+                        }
+                else:
+                    error_msg = result.get("message", "Unknown error")
+                    logger.error(f"API returned error: {error_msg}")
+                    return {
+                        "success": False,
+                        "error": error_msg,
+                        "raw_data": result
+                    }
+            else:
+                error_msg = f"API request failed: {response.status_code} - {response.text}"
+                logger.error(error_msg)
+                return {"success": False, "error": error_msg, "status_code": response.status_code}
+                
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Network error: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+        except Exception as e:
+            error_msg = f"Unexpected error: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
   
 # Test function
 def main():
