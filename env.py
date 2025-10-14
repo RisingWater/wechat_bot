@@ -5,9 +5,9 @@ from pathlib import Path
 class EnvConfig:
     def __init__(self, env_file=".env"):
         self.env_file = Path(env_file)
-        self.load_env()
+        self._load_env()
     
-    def load_env(self):
+    def _load_env(self):
         """Load environment variables from .env file"""
         if self.env_file.exists():
             with open(self.env_file, 'r') as f:
