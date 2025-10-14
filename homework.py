@@ -10,18 +10,97 @@ class HomeworkProcessor:
     def __init__(self, env_file=".env"):
         self.ocr = BaiduOCR(env_file)
         self.deepseek = DeepSeekAPI(env_file)
+        self.processor_name = "homework_processor"
+        logger.info(f"HomeworkProcessor initialized")
+    
+    def process_image(self, image_msg, wxauto_client):
+        """
+        处理图片消息 - 实现BaseProcessor接口
+        
+        Args:
+            image_msg (dict): 图片消息数据
+            wxauto_client: wxauto客户端实例
+            
+        Returns:
+            bool: 处理成功返回True，失败返回False
+        """
+        try:
+            chat_name = image_msg.get("chat_name")
+            file_path = image_msg.get("file_path")
+            
+            logger.info(f"HomeworkProcessor processing image from {chat_name}: {file_path}")
+            
+            # 使用百度OCR处理图片
+            ocr_result = self.ocr.recognize_handwriting(file_path)
+            
+            if not ocr_result.get('success'):
+                logger.error(f"OCR failed for {file_path}: {ocr_result.get('error')}")
+                self._send_error_response(wxauto_client, chat_name, f"图片识别失败: {ocr_result.get('error', '未知错误')}")
+                return False
+            
+            logger.info(f"OCR successful for {file_path}, found {len(ocr_result['results'])} text items")
+            
+            # 提取所有文本
+            all_text = " ".join([item['text'] for item in ocr_result['results']])
+            logger.info(f"OCR text preview: {all_text[:100]}...")
+            
+            # 使用DeepSeek整理结果
+            organized_text = self._organize_ocr_with_deepseek(ocr_result['results'])
+            
+            if organized_text:
+                # 发送整理后的文本给用户
+                response_msg = f"作业内容整理：\n\n{organized_text}"
+                wxauto_client.send_text_message(who=chat_name, msg=response_msg)
+                logger.info(f"Successfully processed homework image and sent response to {chat_name}")
+                
+                return True
+            else:
+                error_msg = "作业内容整理失败，请重试或联系管理员"
+                self._send_error_response(wxauto_client, chat_name, error_msg)
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error processing homework image: {str(e)}")
+            self._send_error_response(wxauto_client, image_msg.get("chat_name"), f"处理图片时发生错误: {str(e)}")
+            return False
+    
+    def process_voice(self, voice_msg, wxauto_client):
+        return False
+        
+    def process_text(self, text_msg, wxauto_client):
+        return False
+            
+    def _organize_ocr_with_deepseek(self, ocr_results):
+        """
+        使用DeepSeek整理OCR结果
+        
+        Args:
+            ocr_results (list): OCR结果列表
+            
+        Returns:
+            str: 整理后的文本内容
+        """
+        try:
+            prompt = self._generate_ocr_prompt(ocr_results)
+            organized_text = self.deepseek.ask_question(prompt)
+            
+            logger.info("Successfully organized OCR results with DeepSeek")
+            return organized_text
+                
+        except Exception as e:
+            logger.error(f"Error organizing OCR with DeepSeek: {str(e)}")
+            return None
     
     def _generate_ocr_prompt(self, ocr_results):
         """
-        Generate prompt for DeepSeek to organize OCR results
+        生成DeepSeek提示词
         
         Args:
-            ocr_results (list): List of OCR text results
+            ocr_results (list): OCR结果列表
             
         Returns:
-            str: Formatted prompt for DeepSeek
+            str: 格式化后的提示词
         """
-        # Extract text from OCR results
         ocr_texts = [item['text'] for item in ocr_results]
         ocr_content = "\n".join([f"{i+1}. {text}" for i, text in enumerate(ocr_texts)])
         
@@ -63,139 +142,19 @@ B班
 请只输出整理后的文本内容，不要添加额外的解释说明。如果识别结果与作业无关请直接输出"这不是作业"
 """
         return prompt
-    
-    def organize_ocr_with_deepseek(self, ocr_results):
+      
+    def _send_error_response(self, wxauto_client, chat_name, error_message):
         """
-        Use DeepSeek to organize OCR results
+        发送错误响应
         
         Args:
-            ocr_results (list): List of OCR text results
-            
-        Returns:
-            str: Organized text content, or None if failed
+            wxauto_client: wxauto客户端实例
+            chat_name (str): 聊天名称
+            error_message (str): 错误消息
         """
-        try:
-            # Generate prompt
-            prompt = self._generate_ocr_prompt(ocr_results)
-            
-            # Send to DeepSeek
-            organized_text = self.deepseek.ask_question(prompt)
-            
-            if organized_text:
-                logger.info("Successfully organized OCR results with DeepSeek")
-                return organized_text
-            else:
-                logger.error("Failed to organize OCR results with DeepSeek")
-                return None
-                
-        except Exception as e:
-            logger.error(f"Error organizing OCR with DeepSeek: {str(e)}")
-            return None
-    
-    def process_image_with_ocr(self, image_path, chat_name=""):
-        """
-        Process image with OCR and return results
-        
-        Args:
-            image_path (str): Path to the image file
-            chat_name (str): Name of the chat/sender
-            
-        Returns:
-            dict: OCR processing result
-        """
-        try:
-            logger.info(f"Processing image with OCR: {image_path}")
-            
-            # Use Baidu OCR to process image
-            ocr_result = self.ocr.recognize_handwriting(image_path)
-            
-            if ocr_result.get('success'):
-                logger.info(f"OCR successful for {image_path}, found {len(ocr_result['results'])} text items")
-                
-                # Extract all text
-                all_text = " ".join([item['text'] for item in ocr_result['results']])
-                logger.info(f"OCR text preview: {all_text[:100]}...")
-                
-                # Use DeepSeek to organize the results
-                organized_text = self.organize_ocr_with_deepseek(ocr_result['results'])
-                
-                return {
-                    "success": True,
-                    "image_file": image_path,
-                    "chat_name": chat_name,
-                    "ocr_text": all_text,
-                    "organized_text": organized_text,
-                    "detailed_results": ocr_result['results'],
-                    "raw_ocr_result": ocr_result
-                }
-            else:
-                logger.error(f"OCR failed for {image_path}: {ocr_result.get('error')}")
-                return {
-                    "success": False,
-                    "image_file": image_path,
-                    "chat_name": chat_name,
-                    "error": ocr_result.get('error'),
-                    "raw_ocr_result": ocr_result
-                }
-                
-        except Exception as e:
-            logger.error(f"Error processing image {image_path}: {str(e)}")
-            return {
-                "success": False,
-                "image_file": image_path,
-                "chat_name": chat_name,
-                "error": str(e)
-            }
-    
-    def handle_ocr_result(self, ocr_result, wxauto_client=None):
-        """
-        Handle OCR result - custom logic for homework processing
-        
-        Args:
-            ocr_result (dict): OCR processing result
-            wxauto_client: WXAuto client instance for sending responses
-        """
-        if not ocr_result['success']:
-            logger.error(f"OCR processing failed: {ocr_result.get('error')}")
-            
-            # Optionally send error message back to user
-            if wxauto_client and ocr_result.get('chat_name'):
-                error_msg = f"图片识别失败: {ocr_result.get('error', '未知错误')}"
-                wxauto_client.send_text_message(
-                    who=ocr_result['chat_name'],
-                    msg=error_msg
-                )
-            return
-        
-        # Custom logic for homework processing
-        chat_name = ocr_result['chat_name']
-        ocr_text = ocr_result['ocr_text']
-        organized_text = ocr_result.get('organized_text')
-        
-        logger.info(f"OCR result for {ocr_result['image_file']}:")
-        logger.info(f"Chat: {chat_name}")
-        logger.info(f"Raw OCR text: {ocr_text}")
-        
-        if organized_text:
-            logger.info(f"Organized text: {organized_text}")
-        
-        # Send response back to user
         if wxauto_client and chat_name:
-            if organized_text:
-                # Send organized text
-                response_msg = f"{organized_text}"
-            else:
-                # Send raw OCR text
-                response_msg = f"整理作业失败"
-            
-            wxauto_client.send_text_message(
-                who=chat_name,
-                msg=response_msg
-            )
-        
-        # TODO: Add more homework-specific logic here
-        # For example:
-        # - Save to database
-        # - Analyze homework content
-        # - Generate reports
-        # - Integrate with other services
+            try:
+                wxauto_client.send_text_message(who=chat_name, msg=error_message)
+            except Exception as e:
+                logger.error(f"Failed to send error response: {str(e)}")
+    

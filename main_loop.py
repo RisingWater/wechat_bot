@@ -2,11 +2,14 @@
 import os
 import time
 import logging
-import json
 from pathlib import Path
 from wxauto import WXAuto
 from homework import HomeworkProcessor
+#from print_processor import PrintProcessor
+#from cmd_processor import CmdProcessor
+#from chat_processor import ChatProcessor
 from env import EnvConfig
+from process_router import ProcessRouter
 
 # Configure logging
 logging.basicConfig(
@@ -17,246 +20,138 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class MainLoopProcessor:
-    def __init__(self, env_file=".env"):
+    def __init__(self, env_file=".env", config_file="processor_config.json"):
+        """
+        初始化主循环处理器
+        
+        Args:
+            env_file (str): 环境配置文件路径
+            config_file (str): 处理器配置文件路径
+        """
         self._config = EnvConfig(env_file)
         self.wxauto = WXAuto(env_file)
-        self.homework_processor = HomeworkProcessor(env_file)
-        self.download_path = self._get_download_path()
         self.running = False
         
-    def _get_download_path(self):
-        """Get download path from environment"""
-        download_path = self._config.get('WXAUTO_DOWNLOAD_PATH')
-        if not download_path:
-            # Default download path
-            download_path = "/tmp/wxauto_download"
+        # 初始化处理器路由
+        self.process_router = self._init_process_router(env_file, config_file)
         
-        path = Path(download_path)
-        if not path.exists():
-            path.mkdir(parents=True, exist_ok=True)
-            logger.info(f"Created download directory: {path}")
+        logger.info("MainLoopProcessor 初始化完成")
         
-        return path
-    
-    def extract_image_messages(self, message_result):
+    def _init_process_router(self, env_file, config_file):
         """
-        Extract image messages from message result
+        初始化处理器路由
         
         Args:
-            message_result (dict): Result from get_next_new_message
+            env_file (str): 环境配置文件路径
+            config_file (str): 处理器配置文件路径
             
         Returns:
-            list: List of image messages with file paths
+            ProcessRouter: 处理器路由实例
         """
-        if not message_result.get("success") or not message_result.get("has_message"):
-            return []
+        logger.info("正在初始化处理器路由...")
+        router = ProcessRouter(config_file)
         
-        image_messages = []
-        for msg in message_result.get("messages", []):
-            if (msg.get("type") == "image" and 
-                msg.get("class") == "FriendImageMessage" and
-                msg.get("download_success") == True and
-                msg.get("file_name")):
-                
-                # Build full file path
-                file_name = msg.get("file_name")
-                file_path = self.download_path / file_name
-                
-                if file_path.exists():
-                    image_messages.append({
-                        "chat_name": msg.get("chat_name"),
-                        "file_name": file_name,
-                        "file_path": str(file_path),
-                        "message_id": msg.get("id"),
-                        "raw_message": msg
-                    })
-                    logger.info(f"Found image message: {file_name}")
-                else:
-                    logger.warning(f"Image file not found: {file_path}")
+        # 注册所有处理器
+        router.register_processor("homework_processor", HomeworkProcessor(env_file))
+        #router.register_processor("print_processor", PrintProcessor(env_file))
+        #router.register_processor("cmd_processor", CmdProcessor(env_file))
+        #router.register_processor("chat_processor", ChatProcessor(env_file))
         
-        return image_messages
-    
-    def process_single_image(self, image_msg):
-        """
-        Process a single image message synchronously
-        
-        Args:
-            image_msg (dict): Image message data
-            
-        Returns:
-            bool: True if processing successful, False otherwise
-        """
-        try:
-            logger.info(f"Processing image: {image_msg['file_name']}")
-            
-            # Process each image with OCR using homework processor
-            ocr_result = self.homework_processor.process_image_with_ocr(
-                image_path=image_msg['file_path'],
-                chat_name=image_msg['chat_name']
-            )
-            
-            # Handle the OCR result using homework processor
-            success = self.homework_processor.handle_ocr_result(
-                ocr_result=ocr_result,
-                wxauto_client=self.wxauto
-            )
-            
-            if success:
-                logger.info(f"Successfully processed image: {image_msg['file_name']}")
-            else:
-                logger.warning(f"Failed to process image: {image_msg['file_name']}")
-            
-            return success
-            
-        except Exception as e:
-            logger.error(f"Error processing {image_msg['file_name']}: {str(e)}")
-            return False
-    
-    def process_message_batch(self, message_result):
-        """
-        Process a batch of messages synchronously
-        
-        Args:
-            message_result (dict): Result from get_next_new_message
-            
-        Returns:
-            int: Number of images processed
-        """
-        if not message_result.get("success"):
-            logger.error(f"Failed to get messages: {message_result.get('error')}")
-            return 0
-        
-        if not message_result.get("has_message"):
-            # No new messages
-            return 0
-        
-        chat_name = message_result.get("chat_name")
-        logger.info(f"Processing messages from: {chat_name}")
-        
-        # Extract image messages
-        image_messages = self.extract_image_messages(message_result)
-        
-        # Process each image synchronously
-        processed_count = 0
-        for image_msg in image_messages:
-            success = self.process_single_image(image_msg)
-            if success:
-                processed_count += 1
-        
-        # Also process voice messages if any
-        voice_messages = self.extract_voice_messages(message_result)
-        for voice_msg in voice_messages:
-            self.process_voice_message(voice_msg)
-        
-        logger.info(f"Processed {processed_count} images from {chat_name}")
-        return processed_count
-    
-    def extract_voice_messages(self, message_result):
-        """
-        Extract voice messages from message result
-        
-        Args:
-            message_result (dict): Result from get_next_new_message
-            
-        Returns:
-            list: List of voice messages with text content
-        """
-        if not message_result.get("success") or not message_result.get("has_message"):
-            return []
-        
-        voice_messages = []
-        for msg in message_result.get("messages", []):
-            if (msg.get("type") == "voice" and 
-                "Voice" in msg.get("class", "") and
-                msg.get("voice_convert_success") == True and
-                msg.get("voice_to_text")):
-                
-                voice_messages.append({
-                    "chat_name": msg.get("chat_name"),
-                    "voice_text": msg.get("voice_to_text"),
-                    "message_id": msg.get("id"),
-                    "raw_message": msg
-                })
-                logger.info(f"Found voice message: {msg.get('voice_to_text')[:50]}...")
-        
-        return voice_messages
-    
-    def process_voice_message(self, voice_msg):
-        """
-        Process a voice message
-        
-        Args:
-            voice_msg (dict): Voice message data
-        """
-        try:
-            logger.info(f"Processing voice message from: {voice_msg['chat_name']}")
-            logger.info(f"Voice content: {voice_msg['voice_text']}")
-            
-            # Here you can add logic to handle voice message content
-            # For example, check for specific commands or keywords
-            
-            # Example: If voice contains "作业" keyword, trigger homework processing
-            if "作业" in voice_msg['voice_text']:
-                logger.info("Detected homework-related voice message")
-                # Add your specific logic here
-            
-        except Exception as e:
-            logger.error(f"Error processing voice message: {str(e)}")
+        logger.info("所有处理器注册完成")
+        return router
     
     def main_loop(self, check_interval=3):
         """
-        Main processing loop with synchronous processing
+        主循环
         
         Args:
-            check_interval (int): Interval between checks in seconds
+            check_interval (int): 检查间隔秒数，默认3秒
         """
         self.running = True
-        logger.info("Starting main loop with synchronous processing...")
-        logger.info(f"Download path: {self.download_path}")
-        logger.info(f"Check interval: {check_interval}s")
+        logger.info("=" * 50)
+        logger.info("启动主循环处理器")
+        logger.info(f"检查间隔: {check_interval}秒")
+        logger.info("=" * 50)
         
-        total_processed = 0
+        total_stats = {
+            "processed": 0, 
+            "errors": 0,
+            "batches_processed": 0,
+            "start_time": time.time()
+        }
         
         try:
             while self.running:
-                # Get new messages
+                logger.info("-" * 30)
+                logger.info(f"第 {total_stats['batches_processed'] + 1} 次检查新消息...")
+                
+                # 获取新消息
                 message_result = self.wxauto.get_next_new_message()
                 
-                # Process the messages synchronously
-                processed_count = self.process_message_batch(message_result)
-                total_processed += processed_count
+                if not message_result.get("success"):
+                    logger.warning(f"获取消息失败: {message_result.get('error')}")
+                elif not message_result.get("has_message"):
+                    logger.info("没有新消息")
+                else:
+                    logger.info(f"发现新消息，来自: {message_result.get('chat_name')}")
                 
-                # Wait before next check
+                # 使用路由处理器处理消息
+                self.process_router.route_message_batch(message_result, self.wxauto)
+                
+                # 等待下次检查
+                logger.info(f"等待 {check_interval} 秒后继续检查...")
                 time.sleep(check_interval)
                 
         except KeyboardInterrupt:
-            logger.info("Main loop interrupted by user")
+            logger.info("用户中断主循环")
         except Exception as e:
-            logger.error(f"Error in main loop: {str(e)}")
+            logger.error(f"主循环发生错误: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
         finally:
             self.running = False
-            logger.info(f"Main loop stopped. Total images processed: {total_processed}")
-    
+        
     def stop(self):
-        """Stop the main loop"""
+        """停止主循环"""
+        logger.info("正在停止主循环...")
         self.running = False
-        logger.info("Stopping main loop...")
 
 
 def main():
-    """Main function"""
-    print("Starting Main Loop Processor with Synchronous Processing...")
+    """主函数"""
+    print("=" * 60)
+    print("微信消息处理系统 - 主循环处理器")
+    print("=" * 60)
+    print("功能说明:")
+    print("- 自动监控微信新消息")
+    print("- 根据聊天名称路由到相应处理器")
+    print("- 支持作业识别、文件打印、命令处理、聊天处理等功能")
+    print("- 按配置文件精确匹配聊天名称")
+    print("=" * 60)
     
-    # Create processor instance
-    processor = MainLoopProcessor()
-    
-    # Start main loop
     try:
+        # 创建处理器实例
+        processor = MainLoopProcessor(
+            env_file=".env",
+            config_file="processor_config.json"
+        )
+        
+        # 启动主循环
+        print("正在启动主循环...")
+        print("按 Ctrl+C 可停止程序")
+        print("-" * 40)
+        
         processor.main_loop(check_interval=3)
+        
     except Exception as e:
-        logger.error(f"Failed to start main loop: {e}")
-        print(f"Error: {e}")
+        logger.error(f"程序启动失败: {e}")
+        print(f"错误: {e}")
+        return 1
+    
+    print("程序正常退出")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    exit_code = main()
+    exit(exit_code)

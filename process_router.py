@@ -3,14 +3,17 @@ import logging
 import json
 from pathlib import Path
 from typing import List, Dict, Any
+from env import EnvConfig
 
 logger = logging.getLogger(__name__)
 
 class ProcessRouter:
-    def __init__(self, config_file: str = "processor_config.json"):
+    def __init__(self, config_file: str = "processor_config.json", env_file=".env"):
+        self._config = EnvConfig(env_file)
         self.processors = {}
         self.chat_name_processor_config = {}
         self.cmd_list = []
+        self.download_path = self._get_download_path()
         
         # 加载配置文件
         self._load_config(config_file)
@@ -53,6 +56,20 @@ class ProcessRouter:
         ]
         logger.info("使用默认配置")
     
+    def _get_download_path(self):
+        """Get download path from environment"""
+        download_path = self._config.get('WXAUTO_DOWNLOAD_PATH')
+        if not download_path:
+            # Default download path
+            download_path = "/tmp/wxauto_download"
+        
+        path = Path(download_path)
+        if not path.exists():
+            path.mkdir(parents=True, exist_ok=True)
+            logger.info(f"Created download directory: {path}")
+        
+        return path
+
     def register_processor(self, name: str, processor_instance):
         """注册处理器"""
         self.processors[name] = processor_instance
@@ -112,7 +129,7 @@ class ProcessRouter:
                 images.append({
                     "chat_name": msg.get("chat_name"),
                     "file_name": msg.get("file_name"),
-                    "file_path": msg.get("local_path", ""),
+                    "file_path": self.download_path / msg.get("file_name"),
                     "message_id": msg.get("id"),
                     "content": msg.get("content", ""),
                     "raw_message": msg
