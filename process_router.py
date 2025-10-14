@@ -123,6 +123,10 @@ class ProcessRouter:
         texts = []
         
         for msg in messages:
+            if msg.get("attr") == "self":
+                logger.info(f"跳过自己发送的消息: {msg.get('content', '')[:50]}...")
+                continue
+
             msg_type = msg.get("type", "")
             
             if msg_type == "image" and msg.get("download_success") == True and msg.get("file_name"):
@@ -187,6 +191,7 @@ class ProcessRouter:
                             total_processed += 1
                             used_processors.add(processor.__class__.__name__)
                             logger.info(f"{processor.__class__.__name__} 成功处理图片: {img_msg['file_name']}")
+                            break
                         else:
                             total_errors += 1
                     except Exception as e:
@@ -205,6 +210,7 @@ class ProcessRouter:
                             total_processed += 1
                             used_processors.add(processor.__class__.__name__)
                             logger.info(f"{processor.__class__.__name__} 成功处理语音: {voice_msg['voice_text'][:50]}...")
+                            break
                         else:
                             total_errors += 1
                     except Exception as e:
@@ -223,6 +229,7 @@ class ProcessRouter:
                             total_processed += 1
                             used_processors.add(processor.__class__.__name__)
                             logger.info(f"{processor.__class__.__name__} 成功处理文本: {text_msg['text_content'][:50]}...")
+                            break
                         else:
                             total_errors += 1
                     except Exception as e:

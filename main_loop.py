@@ -4,10 +4,10 @@ import time
 import logging
 from pathlib import Path
 from wxauto import WXAuto
-from homework import HomeworkProcessor
+from processor.homework_processor import HomeworkProcessor
 #from print_processor import PrintProcessor
-#from cmd_processor import CmdProcessor
-#from chat_processor import ChatProcessor
+from processor.cmd_processor import CmdProcessor
+from processor.chat_processor import ChatProcessor
 from env import EnvConfig
 from process_router import ProcessRouter
 
@@ -54,8 +54,8 @@ class MainLoopProcessor:
         # 注册所有处理器
         router.register_processor("homework_processor", HomeworkProcessor(env_file))
         #router.register_processor("print_processor", PrintProcessor(env_file))
-        #router.register_processor("cmd_processor", CmdProcessor(env_file))
-        #router.register_processor("chat_processor", ChatProcessor(env_file))
+        router.register_processor("cmd_processor", CmdProcessor(env_file))
+        router.register_processor("chat_processor", ChatProcessor(env_file))
         
         logger.info("所有处理器注册完成")
         return router
