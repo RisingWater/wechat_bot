@@ -3,7 +3,7 @@ import logging
 import json
 import time
 from pathlib import Path
-from deepseek import DeepSeekAPI
+from webapi.deepseek import DeepSeekAPI
 
 logger = logging.getLogger(__name__)
 
@@ -45,9 +45,6 @@ class CmdProcessor:
             logger.error(f"加载配置文件失败: {str(e)}，使用默认配置")
             # 默认命令列表
             self.cmd_list = ["打开电视", "关闭电视"]
-
-    def process_image(self, image_msg, wxauto_client):
-        return False
     
     def process_voice(self, voice_msg, wxauto_client):
         """
@@ -208,7 +205,7 @@ class CmdProcessor:
         """
         try:
             # 调用 MiTV 的打开电视功能
-            from mitv import MiTV
+            from device.mitv import MiTV
             
             tv_controller = MiTV()
             result = tv_controller.smart_power_on()
@@ -231,7 +228,7 @@ class CmdProcessor:
         """
         try:
             # 调用 MiTV 的关闭电视功能
-            from mitv import MiTV
+            from device.mitv import MiTV
             
             tv_controller = MiTV()
             result = tv_controller.smart_power_off()

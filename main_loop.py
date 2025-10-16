@@ -3,7 +3,7 @@ import os
 import time
 import logging
 from pathlib import Path
-from wxauto import WXAuto
+from webapi.wxauto import WXAuto
 from processor.homework_processor import HomeworkProcessor
 #from print_processor import PrintProcessor
 from processor.cmd_processor import CmdProcessor
@@ -53,9 +53,16 @@ class MainLoopProcessor:
         
         # 注册所有处理器
         router.register_processor("homework_processor", HomeworkProcessor(env_file))
+        logger.info("注册作业识别处理器...")
+
         #router.register_processor("print_processor", PrintProcessor(env_file))
+        logger.info("注册文件打印处理器...")
+
         router.register_processor("cmd_processor", CmdProcessor(env_file))
+        logger.info("注册命令处理器...")
+
         router.register_processor("chat_processor", ChatProcessor(env_file))
+        logger.info("注册聊天处理器...")
         
         logger.info("所有处理器注册完成")
         return router
@@ -82,24 +89,17 @@ class MainLoopProcessor:
         
         try:
             while self.running:
-                logger.info("-" * 30)
-                logger.info(f"第 {total_stats['batches_processed'] + 1} 次检查新消息...")
-                
                 # 获取新消息
                 message_result = self.wxauto.get_next_new_message()
                 
                 if not message_result.get("success"):
                     logger.warning(f"获取消息失败: {message_result.get('error')}")
-                elif not message_result.get("has_message"):
-                    logger.info("没有新消息")
-                else:
+                elif message_result.get("has_message"):
                     logger.info(f"发现新消息，来自: {message_result.get('chat_name')}")
                 
                 # 使用路由处理器处理消息
                 self.process_router.route_message_batch(message_result, self.wxauto)
                 
-                # 等待下次检查
-                logger.info(f"等待 {check_interval} 秒后继续检查...")
                 time.sleep(check_interval)
                 
         except KeyboardInterrupt:

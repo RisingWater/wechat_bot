@@ -46,6 +46,12 @@ class EnvConfig:
         return {
             'ip': self.get('MITV_IP')
         }
+    
+    def get_printer_config(self):
+        """Get IPP configuration"""
+        return {
+            'name': self.get('PRINTER_NAME')
+        }
 
 # Test function
 def main():

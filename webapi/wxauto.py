@@ -114,8 +114,6 @@ class WXAuto:
                 "filter_mute": filter_mute
             }
             
-            logger.info("Getting next new message...")
-            
             response = requests.post(url, headers=headers, json=payload, timeout=30)
             
             if response.status_code == 200:
@@ -136,7 +134,6 @@ class WXAuto:
                             "raw_data": result
                         }
                     else:
-                        logger.info("No new messages")
                         return {
                             "success": True,
                             "has_message": False,

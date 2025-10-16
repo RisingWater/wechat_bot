@@ -75,7 +75,7 @@ class ProcessRouter:
         self.processors[name] = processor_instance
         logger.info(f"Registered processor: {name}")
     
-    def get_processors_for_chat(self, chat_name: str, message_content: str = "") -> List[Any]:
+    def get_processors_for_chat(self, chat_name: str) -> List[Any]:
         """
         根据聊天名称和消息内容获取对应的处理器列表
         """
@@ -99,7 +99,7 @@ class ProcessRouter:
         
         return valid_processors
     
-    def extract_messages_by_type(self, message_batch: Dict[str, Any]) -> Dict[str, List]:
+    def extract_messages_by_type(self, message_batch: Dict[str, Any]) -> List:
         """
         从消息批次中按类型提取消息
         """
@@ -108,9 +108,7 @@ class ProcessRouter:
         
         messages = message_batch.get("messages", [])
         
-        images = []
-        voices = []
-        texts = []
+        msglist = []
         
         for msg in messages:
             if msg.get("attr") == "self":
@@ -120,7 +118,8 @@ class ProcessRouter:
             msg_type = msg.get("type", "")
             
             if msg_type == "image" and msg.get("download_success") == True and msg.get("file_name"):
-                images.append({
+                msglist.append({
+                    "msg_type" : "image",
                     "chat_name": msg.get("chat_name"),
                     "file_name": msg.get("file_name"),
                     "file_path": self.download_path / msg.get("file_name"),
@@ -130,7 +129,8 @@ class ProcessRouter:
                 })
                 
             elif msg_type == "voice" and msg.get("voice_convert_success") == True:
-                voices.append({
+                msglist.append({
+                    "msg_type" : "voice",
                     "chat_name": msg.get("chat_name"),
                     "voice_text": msg.get("voice_to_text", ""),
                     "message_id": msg.get("id"),
@@ -139,18 +139,15 @@ class ProcessRouter:
                 })
                 
             elif msg_type == "text":
-                texts.append({
+                msglist.append({
+                    "msg_type" : "text",
                     "chat_name": msg.get("chat_name"),
                     "text_content": msg.get("content", ""),
                     "message_id": msg.get("id"),
                     "raw_message": msg
                 })
         
-        return {
-            "images": images,
-            "voices": voices, 
-            "texts": texts
-        }
+        return msglist
     
     def route_message_batch(self, message_batch: Dict[str, Any], wxauto_client) -> Dict[str, Any]:
         """
@@ -163,72 +160,37 @@ class ProcessRouter:
         logger.info(f"开始处理来自 '{chat_name}' 的消息")
         
         # 提取消息并按类型分类
-        messages_by_type = self.extract_messages_by_type(message_batch)
-        
-        # 为每条消息单独选择处理器（因为同批次可能有命令消息和非命令消息）
-        total_processed = 0
-        total_errors = 0
-        used_processors = set()
-        
+        message_list = self.extract_messages_by_type(message_batch)
+                
         # 处理图片消息
-        for img_msg in messages_by_type["images"]:
+        for msg in message_list:
+            logger.info(f"开始处理消息\n%s", json.dumps(msg["raw_message"], indent=2))
             processors = self.get_processors_for_chat(chat_name)
             for processor in processors:
-                if hasattr(processor, 'process_image'):
+                if hasattr(processor, 'process_image') and msg.get('msg_type') == 'image':
                     try:
-                        result = processor.process_image(img_msg, wxauto_client)
+                        result = processor.process_image(msg, wxauto_client)
                         if result:
-                            total_processed += 1
-                            used_processors.add(processor.__class__.__name__)
-                            logger.info(f"{processor.__class__.__name__} 成功处理图片: {img_msg['file_name']}")
+                            logger.info(f"{processor.__class__.__name__} 成功处理图片: {msg['file_name']}")
                             break
-                        else:
-                            total_errors += 1
                     except Exception as e:
                         logger.error(f"处理器 {processor.__class__.__name__} 处理图片错误: {str(e)}")
-                        total_errors += 1
         
-        # 处理语音消息
-        for voice_msg in messages_by_type["voices"]:
-            # 使用语音内容进行命令检测
-            processors = self.get_processors_for_chat(chat_name, voice_msg["voice_text"])
-            for processor in processors:
-                if hasattr(processor, 'process_voice'):
+                if hasattr(processor, 'process_voice') and msg.get('msg_type') == 'voice':
                     try:
-                        result = processor.process_voice(voice_msg, wxauto_client)
+                        result = processor.process_voice(msg, wxauto_client)
                         if result:
-                            total_processed += 1
-                            used_processors.add(processor.__class__.__name__)
-                            logger.info(f"{processor.__class__.__name__} 成功处理语音: {voice_msg['voice_text'][:50]}...")
+                            logger.info(f"{processor.__class__.__name__} 成功处理语音: {msg['voice_text'][:50]}...")
                             break
-                        else:
-                            total_errors += 1
                     except Exception as e:
                         logger.error(f"处理器 {processor.__class__.__name__} 处理语音错误: {str(e)}")
-                        total_errors += 1
         
-        # 处理文本消息
-        for text_msg in messages_by_type["texts"]:
-            # 使用文本内容进行命令检测
-            processors = self.get_processors_for_chat(chat_name, text_msg["text_content"])
-            for processor in processors:
-                if hasattr(processor, 'process_text'):
+                if hasattr(processor, 'process_text') and msg.get('msg_type') == 'text':
                     try:
-                        result = processor.process_text(text_msg, wxauto_client)
+                        result = processor.process_text(msg, wxauto_client)
                         if result:
-                            total_processed += 1
-                            used_processors.add(processor.__class__.__name__)
-                            logger.info(f"{processor.__class__.__name__} 成功处理文本: {text_msg['text_content'][:50]}...")
+                            logger.info(f"{processor.__class__.__name__} 成功处理文本: {msg['text_content'][:50]}...")
                             break
-                        else:
-                            total_errors += 1
                     except Exception as e:
                         logger.error(f"处理器 {processor.__class__.__name__} 处理文本错误: {str(e)}")
-                        total_errors += 1
         
-        logger.info(f"处理完成: 成功 {total_processed}, 失败 {total_errors}")
-        return {
-            "processed": total_processed,
-            "errors": total_errors,
-            "processors_used": list(used_processors)
-        }

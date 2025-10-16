@@ -69,7 +69,7 @@ class BaiduOCR:
             if response.status_code == 200:
                 result_data = response.json()
 
-                print(result_data)
+                logger.info(result_data)
                 
                 # Check if OCR was successful
                 if 'words_result' in result_data:

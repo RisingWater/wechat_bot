@@ -1,8 +1,8 @@
 # homework.py
 import logging
 import json
-from baidu_ocr import BaiduOCR
-from deepseek import DeepSeekAPI
+from webapi.baidu_ocr import BaiduOCR
+from webapi.deepseek import DeepSeekAPI
 
 logger = logging.getLogger(__name__)
 
@@ -63,12 +63,6 @@ class HomeworkProcessor:
             logger.error(f"Error processing homework image: {str(e)}")
             self._send_error_response(wxauto_client, image_msg.get("chat_name"), f"处理图片时发生错误: {str(e)}")
             return False
-    
-    def process_voice(self, voice_msg, wxauto_client):
-        return False
-        
-    def process_text(self, text_msg, wxauto_client):
-        return False
             
     def _organize_ocr_with_deepseek(self, ocr_results):
         """

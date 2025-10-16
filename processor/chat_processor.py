@@ -2,7 +2,7 @@
 import logging
 import time
 from datetime import datetime, timedelta
-from deepseek import DeepSeekAPI
+from webapi.deepseek import DeepSeekAPI
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +18,6 @@ class ChatProcessor:
         self.session_timeout = 600  # 10分钟
         
         logger.info("ChatProcessor initialized with session memory")
-    
-    def process_image(self, image_msg, wxauto_client):
-        return False
     
     def process_voice(self, voice_msg, wxauto_client):
         """
