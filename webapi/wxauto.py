@@ -1,6 +1,7 @@
 # wxauto.py
 import requests
 import json
+import os
 import logging
 from env import EnvConfig
 
@@ -160,7 +161,148 @@ class WXAuto:
             error_msg = f"Unexpected error: {str(e)}"
             logger.error(error_msg)
             return {"success": False, "error": error_msg}
-  
+
+    def upload_file(self, file_path, description="", uploader=""):
+        """
+        Upload file via WXAuto API
+        
+        Args:
+            file_path (str): Path to the file to upload
+            description (str): File description (optional)
+            uploader (str): Uploader name (optional)
+            
+        Returns:
+            dict: API response with file_id
+        """
+        if not self._api_url or not self._token:
+            error_msg = "WXAuto API URL or Token not configured"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+        
+        if not os.path.exists(file_path):
+            error_msg = f"File not found: {file_path}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+        
+        try:
+            url = f"{self._api_url}/api/v1/files/upload"
+            
+            headers = {
+                'accept': 'application/json',
+                'Authorization': f'Bearer {self._token}',
+            }
+            
+            files = {
+                'file': (os.path.basename(file_path), open(file_path, 'rb')),
+            }
+            
+            data = {}
+            if description:
+                data['description'] = description
+            if uploader:
+                data['uploader'] = uploader
+            
+            logger.info(f"Uploading file: {file_path}")
+            
+            response = requests.post(url, headers=headers, files=files, data=data, timeout=60)
+            
+            if response.status_code == 200:
+                result = response.json()
+                logger.info(f"File uploaded successfully: {result.get('filename')}, file_id: {result.get('file_id')}")
+                return {"success": True, "data": result}
+            else:
+                error_msg = f"File upload failed: {response.status_code} - {response.text}"
+                logger.error(error_msg)
+                return {"success": False, "error": error_msg, "status_code": response.status_code}
+                
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Network error during file upload: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+        except Exception as e:
+            error_msg = f"Unexpected error during file upload: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+        finally:
+            # Ensure file is closed
+            if 'files' in locals():
+                files['file'][1].close()
+
+    def send_file_message(self, who, file_path, wxname="", exact=False, description="", uploader=""):
+        """
+        Send file message via WXAuto API
+        
+        Args:
+            who (str): Recipient name (e.g., "文件传输助手")
+            file_path (str): Path to the file to send
+            wxname (str): WeChat name (optional)
+            exact (bool): Whether to match recipient exactly
+            description (str): File description for upload (optional)
+            uploader (str): Uploader name for upload (optional)
+            
+        Returns:
+            dict: API response
+        """
+        if not self._api_url or not self._token:
+            error_msg = "WXAuto API URL or Token not configured"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+        
+        # Step 1: Upload file
+        upload_result = self.upload_file(file_path, description, uploader)
+        if not upload_result.get("success"):
+            return upload_result
+        
+        file_id = upload_result["data"].get("file_id")
+        if not file_id:
+            error_msg = "No file_id returned from upload"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+        
+        # Step 2: Send file using file_id
+        try:
+            url = f"{self._api_url}/v1/wechat/sendfile"
+            
+            headers = {
+                'accept': 'application/json',
+                'Authorization': f'Bearer {self._token}',
+                'Content-Type': 'application/json'
+            }
+            
+            payload = {
+                "wxname": wxname,
+                "who": who,
+                "exact": exact,
+                "file_id": file_id
+            }
+            
+            logger.info(f"Sending file to '{who}': {os.path.basename(file_path)}")
+            
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("success"):
+                    logger.info(f"File sent successfully to '{who}': {os.path.basename(file_path)}")
+                    return {"success": True, "data": result, "file_info": upload_result["data"]}
+                else:
+                    error_msg = result.get("message", "Unknown error in send file")
+                    logger.error(f"Send file failed: {error_msg}")
+                    return {"success": False, "error": error_msg, "raw_data": result}
+            else:
+                error_msg = f"Send file API request failed: {response.status_code} - {response.text}"
+                logger.error(error_msg)
+                return {"success": False, "error": error_msg, "status_code": response.status_code}
+                
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Network error during file send: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+        except Exception as e:
+            error_msg = f"Unexpected error during file send: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+
 # Test function
 def main():
     import logging

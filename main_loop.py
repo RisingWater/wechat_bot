@@ -8,6 +8,7 @@ from processor.homework_processor import HomeworkProcessor
 from processor.print_processor import PrintProcessor
 from processor.cmd_processor import CmdProcessor
 from processor.chat_processor import ChatProcessor
+from processor.license_processor import LicenseProcessor
 from env import EnvConfig
 from process_router import ProcessRouter
 
@@ -63,6 +64,9 @@ class MainLoopProcessor:
 
         router.register_processor("chat_processor", ChatProcessor(env_file))
         logger.info("注册聊天处理器...")
+
+        router.register_processor("license_processor", LicenseProcessor(env_file))
+        logger.info("注册授权处理器...")
         
         logger.info("所有处理器注册完成")
         return router
@@ -79,14 +83,7 @@ class MainLoopProcessor:
         logger.info("启动主循环处理器")
         logger.info(f"检查间隔: {check_interval}秒")
         logger.info("=" * 50)
-        
-        total_stats = {
-            "processed": 0, 
-            "errors": 0,
-            "batches_processed": 0,
-            "start_time": time.time()
-        }
-        
+                
         try:
             while self.running:
                 # 获取新消息
