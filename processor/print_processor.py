@@ -4,6 +4,7 @@ import json
 import uuid
 import os
 import shutil
+import threading
 from utils.file_converter import FileConverter
 from utils.file_recognize import FileRecognizer
 from device.print import Printer
