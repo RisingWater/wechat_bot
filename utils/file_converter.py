@@ -8,19 +8,19 @@ class FileConverter:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
-    def convert_image_to_pdf(self, input_name: str, output_dir: str) -> str:
+    def convert_image_to_pdf(self, input_file: str, output_dir: str) -> str:
         """
         将图片转换为PDF
         
         Args:
-            input_name: 输入图片路径
+            input_file: 输入图片路径
             output_dir: 输出PDF路径
             
         Returns:
             生成的PDF文件路径
         """
-        if not os.path.exists(input_name):
-            raise FileNotFoundError(f"输入图片不存在: {input_name}")
+        if not os.path.exists(input_file):
+            raise FileNotFoundError(f"输入图片不存在: {input_file}")
 
         if output_dir is None:
             output_dir = os.path.dirname(input_file)
