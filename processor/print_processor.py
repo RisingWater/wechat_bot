@@ -38,9 +38,9 @@ class PrintProcessor:
             output_dir = os.path.dirname(file_path) + "/converted_pdfs"
             os.makedirs(output_dir, exist_ok=True)
 
-            pdf_path = _converter.convert_image_to_pdf(file_path, output_dir=output_dir)
+            pdf_path = self._converter.convert_image_to_pdf(file_path, output_dir=output_dir)
 
-            ret, job_id = _printer.print_pdf(pdf_path)
+            ret, job_id = self._printer.print_pdf(pdf_path)
 
             if ret:
                 wxauto_client.send_text_message(who=chat_name, msg=f"已创建打印任务{job_id}")
@@ -77,7 +77,7 @@ class PrintProcessor:
             
             logger.info(f"PrintProcessor processing file from {chat_name}: {file_path}")
 
-            extension = _file_recognize.get_extension(file_path)
+            extension = self._file_recognize.get_extension(file_path)
 
             if extension == ".unknown":
                 error_msg = f"无法识别文件格式，无法打印"
@@ -92,12 +92,12 @@ class PrintProcessor:
             file_path = new_filepath
 
             if extension != ".pdf":         
-                pdf_path = _converter.convert_document_to_pdf(file_path, output_dir=output_dir)
+                pdf_path = self._converter.convert_document_to_pdf(file_path, output_dir=output_dir)
             else:
                 pdf_path = file_path
                 
             # 直接打印接收到的文件
-            ret, job_id = _printer.print_pdf(pdf_path)
+            ret, job_id = self._printer.print_pdf(pdf_path)
 
             if ret:
                 wxauto_client.send_text_message(who=chat_name, msg=f"已创建打印任务{job_id}")
@@ -148,7 +148,7 @@ class PrintProcessor:
             for i in range(max_checks):
                 try:
                     # 检查任务状态
-                    status_info = _printer.get_job_status(job_id)
+                    status_info = self._printer.get_job_status(job_id)
                     
                     current_state = status_info.get('state_name', 'unknown')
                     
