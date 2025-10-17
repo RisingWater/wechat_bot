@@ -4,7 +4,7 @@ import json
 import uuid
 import os
 from utils.file_converter import FileConverter
-from utils.file.recognize import FileRecognizer
+from utils.file_recognize import FileRecognizer
 from device.print import Printer
 
 logger = logging.getLogger(__name__)
