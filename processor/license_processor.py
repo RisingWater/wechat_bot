@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 class LicenseProcessor:
     def __init__(self, env_file=".env"):
-        self.wxauto_client = WXAuto(env_file)
         self.processor_name = "license_processor"
         logger.info(f"LicenseProcessor initialized")
     
@@ -26,9 +25,6 @@ class LicenseProcessor:
             bool: 处理成功返回True，失败返回False
         """
         try:
-            # 使用传入的wxauto_client或内置的
-            client = wxauto_client if wxauto_client else self.wxauto_client
-            
             chat_name = file_msg.get("chat_name")
             file_path = file_msg.get("file_path")
             
@@ -42,13 +38,13 @@ class LicenseProcessor:
             # 检查文件扩展名
             if ext.lower() != '.ctr':
                 error_msg = f"不支持的文件格式 '{ext}'，仅支持 .ctr 文件"
-                self._send_error_response(client, chat_name, error_msg)
+                self._send_error_response(wxauto_client, chat_name, error_msg)
                 return False
 
             # 验证文件存在
             if not os.path.exists(file_path):
                 error_msg = f"文件不存在: {basename}"
-                self._send_error_response(client, chat_name, error_msg)
+                self._send_error_response(wxauto_client, chat_name, error_msg)
                 return False
                 
             # 生成输出文件名
@@ -61,29 +57,29 @@ class LicenseProcessor:
                 
             if not conversion_success:
                 error_msg = f"文件转换失败: {basename}"
-                self._send_error_response(client, chat_name, error_msg)
+                self._send_error_response(wxauto_client, chat_name, error_msg)
                 return False
             
             # 验证生成的ctl文件
             if not os.path.exists(ctl_path):
                 error_msg = f"转换后的文件未生成: {output_filename}"
-                self._send_error_response(client, chat_name, error_msg)
+                self._send_error_response(wxauto_client, chat_name, error_msg)
                 return False
             
             file_size = os.path.getsize(ctl_path)
             if file_size == 0:
                 error_msg = f"转换后的文件为空: {output_filename}"
-                self._send_error_response(client, chat_name, error_msg)
+                self._send_error_response(wxauto_client, chat_name, error_msg)
                 return False
             
             # 发送转换成功的消息
-            client.send_text_message(
+            wxauto_client.send_text_message(
                 who=chat_name, 
                 msg=f"✅ 文件转换成功，正在发送 {output_filename}..."
             )
                 
             # 发送转换后的文件
-            send_result = client.send_file_message(
+            send_result = wxauto_client.send_file_message(
                 who=chat_name,
                 file_path=ctl_path,
                 exact=True,
@@ -93,21 +89,21 @@ class LicenseProcessor:
                 
             if send_result.get("success"):
                 logger.info(f"Successfully sent converted file {output_filename} to {chat_name}")
-                client.send_text_message(
+                wxauto_client.send_text_message(
                     who=chat_name, 
                     msg=f"📤 文件发送完成: {output_filename}"
                 )
                 return True
             else:
                 error_msg = f"文件发送失败: {send_result.get('error', '未知错误')}"
-                self._send_error_response(client, chat_name, error_msg)
+                self._send_error_response(wxauto_client, chat_name, error_msg)
                 return False
                             
         except Exception as e:
             logger.error(f"Error processing license file: {str(e)}")
             error_msg = f"处理许可证文件时发生错误: {str(e)}"
             self._send_error_response(
-                wxauto_client if wxauto_client else self.wxauto_client, 
+                wxauto_client, 
                 file_msg.get("chat_name"), 
                 error_msg
             )
