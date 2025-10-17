@@ -115,6 +115,8 @@ class ProcessRouter:
                 logger.info(f"跳过自己发送的消息: {msg.get('content', '')[:50]}...")
                 continue
 
+            logger.info(f"开始处理消息\n%s", json.dumps(msg, indent=2))
+
             msg_type = msg.get("type", "")
             
             if msg_type == "image" and msg.get("download_success") == True and msg.get("file_name"):
@@ -174,7 +176,7 @@ class ProcessRouter:
                 
         # 处理图片消息
         for msg in message_list:
-            logger.info(f"开始处理消息\n%s", json.dumps(msg["raw_message"], indent=2))
+            #logger.info(f"开始处理消息\n%s", json.dumps(msg["raw_message"], indent=2))
             processors = self.get_processors_for_chat(chat_name)
             for processor in processors:
                 if hasattr(processor, 'process_image') and msg.get('msg_type') == 'image':
