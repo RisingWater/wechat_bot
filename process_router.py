@@ -127,6 +127,16 @@ class ProcessRouter:
                     "content": msg.get("content", ""),
                     "raw_message": msg
                 })
+            elif msg_type == "file" and msg.get("download_success") == True and msg.get("file_name"):
+                msglist.append({
+                    "msg_type" : "file",
+                    "chat_name": msg.get("chat_name"),
+                    "file_name": msg.get("file_name"),
+                    "file_path": self.download_path / msg.get("file_name"),
+                    "message_id": msg.get("id"),
+                    "content": msg.get("content", ""),
+                    "raw_message": msg
+                })
                 
             elif msg_type == "voice" and msg.get("voice_convert_success") == True:
                 msglist.append({
@@ -193,4 +203,13 @@ class ProcessRouter:
                             break
                     except Exception as e:
                         logger.error(f"处理器 {processor.__class__.__name__} 处理文本错误: {str(e)}")
+
+                if hasattr(processor, 'process_file') and msg.get('msg_type') == 'file':
+                    try:
+                        result = processor.process_file(msg, wxauto_client)
+                        if result:
+                            logger.info(f"{processor.__class__.__name__} 成功处理文件: {msg['file_name']}")
+                            break   
+                    except Exception as e:
+                        logger.error(f"处理器 {processor.__class__.__name__} 处理文件错误: {str(e)}")   
         
