@@ -2,9 +2,6 @@
 import logging
 import os
 import subprocess
-import tempfile
-import shutil
-from wxauto import WXAuto
 
 logger = logging.getLogger(__name__)
 
