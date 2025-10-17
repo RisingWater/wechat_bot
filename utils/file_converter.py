@@ -29,8 +29,10 @@ class FileConverter:
         output_file = os.path.join(output_dir, f"{input_name}.pdf")
         
         try:
-            with open(output_file, "wb") as f:
-                f.write(img2pdf.convert(input_name))
+            # 方法2: 使用文件对象
+            with open(input_file, "rb") as image_file:
+                with open(output_file, "wb") as pdf_file:
+                    pdf_file.write(img2pdf.convert(image_file))
             self.logger.info(f"图片转换成功: {input_name} -> {output_file}")
             return output_file
         except Exception as e:
