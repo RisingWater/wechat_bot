@@ -34,6 +34,8 @@ class PrintProcessor:
         try:
             chat_name = image_msg.get("chat_name")
             file_path = image_msg.get("file_path")
+
+            basename = os.path.basename(file_path)  # 获取文件名
             
             logger.info(f"PrintProcessor processing image from {chat_name}: {file_path}")
 
@@ -50,7 +52,7 @@ class PrintProcessor:
                 logger.info(f"Successfully sent print job {job_id} for {pdf_path}")
 
                 # 启动线程监控打印状态
-                self._start_print_job_monitor(job_id, chat_name, pdf_path, wxauto_client)
+                self._start_print_job_monitor(job_id, chat_name, basename, wxauto_client)
 
                 return True
             else:
@@ -120,7 +122,7 @@ class PrintProcessor:
                 logger.info(f"Successfully sent print job {job_id} for {pdf_path}")
 
                 # 启动线程监控打印状态
-                self._start_print_job_monitor(job_id, chat_name, pdf_path, wxauto_client)
+                self._start_print_job_monitor(job_id, chat_name, basename, wxauto_client)
 
                 return True
             else:
@@ -148,7 +150,7 @@ class PrintProcessor:
             except Exception as e:
                 logger.error(f"Failed to send error response: {str(e)}")
   
-    def _start_print_job_monitor(self, job_id, chat_name, file_path, wxauto_client):
+    def _start_print_job_monitor(self, job_id, chat_name, basename, wxauto_client):
         """
         启动打印任务状态监控线程
         """
@@ -171,10 +173,10 @@ class PrintProcessor:
                     # 检查是否完成
                     if current_state in completed_states:
                         if current_state == 'completed':
-                            wxauto_client.send_text_message(who=chat_name, msg=f"✅ 打印任务{job_id}, 已完成")
+                            wxauto_client.send_text_message(who=chat_name, msg=f"✅ 打印任务{job_id}, {basename} 已打印完成")
                             logger.info(f"Print job {job_id} completed successfully")
                         else:
-                            wxauto_client.send_text_message(who=chat_name, msg=f"❌ 打印任务{job_id}, 失败, 当前状态{current_state}")
+                            wxauto_client.send_text_message(who=chat_name, msg=f"❌ 打印任务{job_id}, {basename} 打印失败, 当前状态{current_state}")
                             logger.warning(f"Print job {job_id} ended with state: {current_state}")
                         break
                     
