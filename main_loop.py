@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from webapi.wxauto import WXAuto
 from processor.homework_processor import HomeworkProcessor
-from print_processor import PrintProcessor
+from processor.print_processor import PrintProcessor
 from processor.cmd_processor import CmdProcessor
 from processor.chat_processor import ChatProcessor
 from env import EnvConfig
