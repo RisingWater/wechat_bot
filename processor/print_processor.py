@@ -63,6 +63,18 @@ class PrintProcessor:
             self._send_error_response(wxauto_client, image_msg.get("chat_name"), f"处理图片时发生错误: {str(e)}")
             return False
       
+    def is_supported_file(self, extension: str) -> bool:
+        if extension == '.doc':
+            return True
+        elif extension == '.docx':
+            return True
+        elif extension == '.pdf':
+            return True
+        elif extension == '.wps':
+            return True
+        else:
+            return False
+        
     def process_file(self, file_msg, wxauto_client):
         """
         处理文件消息 - 实现BaseProcessor接口
@@ -80,9 +92,10 @@ class PrintProcessor:
             
             logger.info(f"PrintProcessor processing file from {chat_name}: {file_path}")
 
-            extension = self._file_recognize.get_extension(file_path)
+            basename = os.path.basename(file_path)  # 获取文件名
+            name, ext = os.path.splitext(basename)
 
-            if extension == ".unknown":
+            if not self.is_supported_file(ext):
                 error_msg = f"无法识别文件格式，无法打印"
                 self._send_error_response(wxauto_client, chat_name, error_msg)
                 return False
@@ -90,11 +103,11 @@ class PrintProcessor:
             output_dir = os.path.dirname(file_path) + "/converted_pdfs"
             os.makedirs(output_dir, exist_ok=True)
 
-            new_filepath = output_dir + "/" + str(uuid.uuid4()) + extension
+            new_filepath = output_dir + "/" + basename
             shutil.move(file_path, new_filepath)
             file_path = new_filepath
 
-            if extension != ".pdf":         
+            if ext != ".pdf":         
                 pdf_path = self._converter.convert_document_to_pdf(file_path, output_dir=output_dir)
             else:
                 pdf_path = file_path

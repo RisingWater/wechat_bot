@@ -103,12 +103,12 @@ class ProcessRouter:
         """
         从消息批次中按类型提取消息
         """
+        msglist = []
+
         if not message_batch.get("success") or not message_batch.get("has_message"):
-            return {"images": [], "voices": [], "texts": []}
+            return msglist
         
         messages = message_batch.get("messages", [])
-        
-        msglist = []
         
         for msg in messages:
             if msg.get("attr") == "self":
