@@ -3,6 +3,7 @@ import logging
 import json
 import uuid
 import os
+import shutil
 from utils.file_converter import FileConverter
 from utils.file_recognize import FileRecognizer
 from device.print import Printer
@@ -88,7 +89,7 @@ class PrintProcessor:
             os.makedirs(output_dir, exist_ok=True)
 
             new_filepath = output_dir + "/" + str(uuid.uuid4()) + extension
-            os.moves(file_path, new_filepath)
+            shutil.move(file_path, new_filepath)
             file_path = new_filepath
 
             if extension != ".pdf":         
