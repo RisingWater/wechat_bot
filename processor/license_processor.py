@@ -118,11 +118,13 @@ class LicenseProcessor:
             bool: 转换成功返回True，失败返回False
         """
         try:
+            input_path_str = str(input_path)
+            output_path_str = str(output_path)
             # 构建命令
             cmd = [
                 '/workdir/ctr2ctl',
-                '--input', input_path,
-                '--output', output_path
+                '--input', input_path_str,
+                '--output', output_path_str
             ]
             
             logger.info(f"Executing command: {' '.join(cmd)}")
