@@ -102,7 +102,7 @@ class LocationProcessor:
     def _get_qb_location(self, chat_name, wxauto_client):
         locations = self._qb_location.get_location()
 
-        if locations.size > 0:
+        if len(locations) > 0:
             location = locations[0]
             logger.info(f"Get Qb Location: {location}")
 
