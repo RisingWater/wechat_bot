@@ -41,7 +41,7 @@ class LocationProcessor:
             logger.info(f"Removed '@呼噜一号' from message, processed content: {processed_content}")
         
             # 使用处理后的内容判断命令意图
-            is_command = self.is_recognize_command_intent(processed_content)
+            is_command = self._recognize_command_intent(processed_content)
 
             if is_command:
                 self._qb_location(wxauto_client)
