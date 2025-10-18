@@ -44,7 +44,7 @@ class LocationProcessor:
             is_command = self._recognize_command_intent(processed_content)
 
             if is_command:
-                self._get_qb_location(wxauto_client)
+                self._get_qb_location(chat_name, wxauto_client)
                 return True
                             
         except Exception as e:
