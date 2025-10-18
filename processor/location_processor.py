@@ -106,22 +106,26 @@ class LocationProcessor:
             location = locations[0]
             logger.info(f"Get Qb Location: {location}")
 
-            wxauto_client.send_text_message(chat_name, f"乔宝位置：{location.address}")
+            # 使用字典键访问方式
+            address = location['address']
+            wxauto_client.send_text_message(chat_name, f"乔宝位置：{address}")
 
             save_path = "/output/wechat_downloads/" + str(uuid.uuid4()) + ".png"
 
+            # 使用字典键访问经纬度
+            gcj02_location = location['gcj02_location']
             self._amap_api.get_amap_static_image(
-                longitude=location.gcj02_location.longitude,
-                latitude=location.gcj02_location.latitude,
+                longitude=gcj02_location['longitude'],
+                latitude=gcj02_location['latitude'],
                 save_path=save_path
-                )
+            )
             
             wxauto_client.send_file_message(chat_name, save_path)
 
             os.remove(save_path)
         else:
             self._send_error_response(wxauto_client, chat_name, "没有获取到位置信息")
-        
+            
         
     def _send_error_response(self, wxauto_client, chat_name, error_message):
         """
