@@ -6,7 +6,7 @@ from pathlib import Path
 from webapi.wxauto import WXAuto
 from processor.homework_processor import HomeworkProcessor
 from processor.print_processor import PrintProcessor
-from processor.cmd_processor import CmdProcessor
+from processor.mitv_processor import MitvProcessor
 from processor.chat_processor import ChatProcessor
 from processor.license_processor import LicenseProcessor
 from env import EnvConfig
@@ -59,7 +59,7 @@ class MainLoopProcessor:
         router.register_processor("print_processor", PrintProcessor(env_file))
         logger.info("注册文件打印处理器...")
 
-        router.register_processor("cmd_processor", CmdProcessor(env_file))
+        router.register_processor("mitv_processor", MitvProcessor(env_file))
         logger.info("注册命令处理器...")
 
         router.register_processor("chat_processor", ChatProcessor(env_file))

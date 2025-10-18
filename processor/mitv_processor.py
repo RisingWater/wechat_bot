@@ -7,13 +7,14 @@ from webapi.deepseek import DeepSeekAPI
 
 logger = logging.getLogger(__name__)
 
-class CmdProcessor:
-    def __init__(self, config_file: str = "processor_config.json", env_file=".env"):
+class MitvProcessor:
+    def __init__(self, env_file=".env"):
         self.deepseek = DeepSeekAPI(env_file)
-        self.processor_name = "cmd_processor"
-
-        # 加载配置文件
-        self._load_config(config_file)
+        self.processor_name = "mitv_processor"
+        self._cmd_list = [
+            "打开电视",
+            "关闭电视"
+        ]
         
         # 命令执行函数映射
         self.command_handlers = {
@@ -22,29 +23,6 @@ class CmdProcessor:
         }
         
         logger.info("CmdProcessor initialized with DeepSeek command recognition")
-    
-    def _load_config(self, config_file: str):
-        """从JSON文件加载配置"""
-        config_path = Path(config_file)
-        
-        if not config_path.exists():
-            logger.warning(f"配置文件 {config_file} 不存在，使用默认配置")
-            self._set_default_config()
-            return
-        
-        try:
-            with open(config_path, 'r', encoding='utf-8') as f:
-                config = json.load(f)
-            
-            self.cmd_list = config.get("cmd_list", [])
-            
-            logger.info(f"成功加载配置文件: {config_file}")
-            logger.info(f"命令列表: {self.cmd_list}")
-            
-        except Exception as e:
-            logger.error(f"加载配置文件失败: {str(e)}，使用默认配置")
-            # 默认命令列表
-            self.cmd_list = ["打开电视", "关闭电视"]
     
     def process_voice(self, voice_msg, wxauto_client):
         """
@@ -104,7 +82,7 @@ class CmdProcessor:
         精确匹配命令
         """
         text = text.strip()
-        for cmd in self.cmd_list:
+        for cmd in self._cmd_list:
             if cmd == text:
                 return cmd
         return None
@@ -121,7 +99,7 @@ class CmdProcessor:
         """
         try:
             # 动态生成命令列表
-            cmd_options = "\n".join([f"{i+1}. {cmd}" for i, cmd in enumerate(self.cmd_list)])
+            cmd_options = "\n".join([f"{i+1}. {cmd}" for i, cmd in enumerate(self._cmd_list)])
             
             prompt = f"""请分析用户的输入，判断是否是以下控制命令之一：
 
@@ -146,7 +124,7 @@ class CmdProcessor:
                 response = response.strip()
                 logger.info(f"DeepSeek command recognition result: '{response}'")
                 
-                if response in self.cmd_list:
+                if response in self._cmd_list:
                     return response
                 else:
                     return None
@@ -265,14 +243,6 @@ class CmdProcessor:
         else:
             return "命令执行完成" if success else "命令执行失败"
     
-    def update_command_list(self, new_cmd_list):
-        """
-        更新命令列表（可以从配置文件动态加载）
-        """
-        self.cmd_list = new_cmd_list
-        logger.info(f"Command list updated: {new_cmd_list}")
-
-
 # 测试函数
 def main():
     import logging
@@ -281,7 +251,7 @@ def main():
     print("Testing CmdProcessor...")
     
     # 创建处理器实例
-    processor = CmdProcessor()
+    processor = MitvProcessor()
     
     # 测试命令识别
     test_inputs = [
