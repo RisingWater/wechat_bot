@@ -1,9 +1,9 @@
 {
     "chat_name_processor_config": {
       "授权生成": ["license_processor"],
-      "作业识别": ["homework_processor"],
+      "作业识别": ["homework_processor", "location_processor"],
       "文件打印": ["print_processor"],
-      "王旭": ["license_processor", "mitv_processor", "location_processor", "chat_processor"],
+      "王旭": ["license_processor", "mitv_processor", "chat_processor"],
       "心颖": ["chat_processor"]
     }
   }
