@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 class HomeworkProcessor:
     def __init__(self, env_file=".env"):
         self.ocr = BaiduOCR(env_file)
-        self.deepseek = DeepSeekAPI(env_file)
+        self._deepseek = DeepSeekAPI(env_file)
         self.processor_name = "homework_processor"
         logger.info(f"HomeworkProcessor initialized")
     
@@ -76,7 +76,7 @@ class HomeworkProcessor:
         """
         try:
             prompt = self._generate_ocr_prompt(ocr_results)
-            organized_text = self.deepseek.ask_question(prompt)
+            organized_text = self._deepseek.ask_question(prompt)
             
             logger.info("Successfully organized OCR results with DeepSeek")
             return organized_text

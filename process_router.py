@@ -1,6 +1,7 @@
 # process_router.py
 import logging
 import json
+import os
 from pathlib import Path
 from typing import List, Dict, Any
 from env import EnvConfig
@@ -215,3 +216,8 @@ class ProcessRouter:
                     except Exception as e:
                         logger.error(f"处理器 {processor.__class__.__name__} 处理文件错误: {str(e)}")   
         
+        # 清理下载文件
+        for msg in message_list:
+            file_path = msg.get('file_path')
+            if file_path:
+                os.remove(file_path)

@@ -58,6 +58,15 @@ class EnvConfig:
         return {
             'name': self.get('PRINTER_NAME')
         }
+    
+    def get_qb_location_config(self):
+        """Get QB Location Configuration"""
+        return {
+            'url': self.get('QB_LOCATION_URL'),
+            'authority': self.get('QB_LOCATION_AUTHORITY'),
+            'username': self.get('QB_LOCATION_USERNAME'),
+            'password': self.get('QB_LOCATION_PASSWORD')
+        }
 
 # Test function
 def main():

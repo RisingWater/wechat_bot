@@ -2,29 +2,37 @@ import requests
 import json
 import logging
 import coord_transfrom
+from env import EnvConfig
 
 logger = logging.getLogger(__name__)
 
 class QBLocation:
-    def __init__(self):
-        self.base_url = "https://www.galaxystar.cloud"
-        self._username = "18650716017"
-        self._password = "Ac60802331"
+    def __init__(self, env_file=".env"):
+        self._config = EnvConfig(env_file)
+        self._load_config()
         self._session = requests.Session()
         self._token = None
         self._setup_headers()
-    
+
+    def _load_config(self):
+        """Load QB Location configuration from environment"""
+        qb_location_config = self._config.get_qb_location_config()
+        self._base_url = qb_location_config.get('url')
+        self._username = qb_location_config.get('username')
+        self._password = qb_location_config.get('password')
+        self._authority = qb_location_config.get('authority')
+        
     def _setup_headers(self):
         """设置基础请求头"""
         self.base_headers = {
-            "authority": "www.galaxystar.cloud",
+            "authority": self._authority,
             "accept": "application/json, text/plain, */*",
             "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
             "client_type": "pc",
             "content-type": "application/json",
-            "origin": self.base_url,
+            "origin": self._base_url,
             "priority": "u=1, i",
-            "referer": f"{self.base_url}/login",
+            "referer": f"{self._base_url}/login",
             "sec-ch-ua": '"Microsoft Edge";v="141", "Not?A_Brand";v="8", "Chromium";v="141"',
             "sec-ch-ua-mobile": "?0",
             "sec-ch-ua-platform": '"Windows"',
@@ -51,7 +59,7 @@ class QBLocation:
         Returns:
             str: token字符串，登录失败返回None
         """
-        url = f"{self.base_url}/api/sys/loginout/login"
+        url = f"{self._base_url}/api/sys/loginout/login"
         
         payload = {
             "loginName": self._username,
@@ -115,7 +123,7 @@ class QBLocation:
             logger.info("请先登录获取token")
             return None
             
-        url = f"{self.base_url}/api/device/locationManager/getOfficeDeviceTreeData"
+        url = f"{self._base_url}/api/device/locationManager/getOfficeDeviceTreeData"
         
         params = {
             "size": size,
@@ -172,7 +180,7 @@ class QBLocation:
             logger.info("请先登录获取token")
             return None
             
-        url = f"{self.base_url}/api/device/locationManager/getCurrPointInfoAll"
+        url = f"{self._base_url}/api/device/locationManager/getCurrPointInfoAll"
         
         payload = {
             "deviceIdList": device_id_list,
@@ -244,7 +252,7 @@ class QBLocation:
             logger.info("请先登录获取token")
             return None
             
-        url = f"{self.base_url}/api/device/locationManager/batchAddress"
+        url = f"{self._base_url}/api/device/locationManager/batchAddress"
         
         payload = {
             "pointList": point_list

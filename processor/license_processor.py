@@ -83,6 +83,8 @@ class LicenseProcessor:
                 description=f"由 {basename} 转换生成的许可证文件",
                 uploader="license_processor"
             )
+
+            os.remove(ctl_path)
                 
             if send_result.get("success"):
                 logger.info(f"Successfully sent converted file {output_filename} to {chat_name}")

@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class MitvProcessor:
     def __init__(self, env_file=".env"):
-        self.deepseek = DeepSeekAPI(env_file)
+        self._deepseek = DeepSeekAPI(env_file)
         self.processor_name = "mitv_processor"
         self._cmd_list = [
             "打开电视",
@@ -22,7 +22,7 @@ class MitvProcessor:
             "关闭电视": self._turn_off_tv
         }
         
-        logger.info("CmdProcessor initialized with DeepSeek command recognition")
+        logger.info("MitvProcessor initialized with DeepSeek command recognition")
     
     def process_voice(self, voice_msg, wxauto_client):
         """
@@ -36,7 +36,7 @@ class MitvProcessor:
                 logger.info(f"Empty voice message from {chat_name}, skipping")
                 return False
             
-            logger.info(f"CmdProcessor processing voice from {chat_name}: {voice_text[:50]}...")
+            logger.info(f"MitvProcessor processing voice from {chat_name}: {voice_text[:50]}...")
             
             # 使用DeepSeek识别命令意图
             command = self._recognize_command_intent(voice_text)
@@ -64,7 +64,7 @@ class MitvProcessor:
                 logger.info(f"Empty text message from {chat_name}, skipping")
                 return False
             
-            logger.info(f"CmdProcessor processing text from {chat_name}: {text_content[:50]}...")
+            logger.info(f"MitvProcessor processing text from {chat_name}: {text_content[:50]}...")
             
             # 精确匹配
             exact_command = self._exact_match_command(text_content)
@@ -118,7 +118,7 @@ class MitvProcessor:
 
     请只回复命令文本或"不是命令"，不要添加任何其他内容。"""
 
-            response = self.deepseek.ask_question(prompt)
+            response = self._deepseek.ask_question(prompt)
             
             if response:
                 response = response.strip()
@@ -248,7 +248,7 @@ def main():
     import logging
     logging.basicConfig(level=logging.INFO)
     
-    print("Testing CmdProcessor...")
+    print("Testing MitvProcessor...")
     
     # 创建处理器实例
     processor = MitvProcessor()

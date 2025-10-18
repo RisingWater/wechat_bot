@@ -9,6 +9,7 @@ from processor.print_processor import PrintProcessor
 from processor.mitv_processor import MitvProcessor
 from processor.chat_processor import ChatProcessor
 from processor.license_processor import LicenseProcessor
+from processor.location_processor import LocationProcessor
 from env import EnvConfig
 from process_router import ProcessRouter
 
@@ -64,6 +65,9 @@ class MainLoopProcessor:
 
         router.register_processor("chat_processor", ChatProcessor(env_file))
         logger.info("注册聊天处理器...")
+
+        router.register_processor("location_processor", LocationProcessor(env_file))
+        logger.info("注册定位处理器...")
 
         router.register_processor("license_processor", LicenseProcessor(env_file))
         logger.info("注册授权处理器...")

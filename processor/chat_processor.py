@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class ChatProcessor:
     def __init__(self, env_file=".env"):
-        self.deepseek = DeepSeekAPI(env_file)
+        self._deepseek = DeepSeekAPI(env_file)
         self.processor_name = "chat_processor"
         
         # 会话存储：{chat_name: {"messages": [], "last_active": timestamp}}
@@ -132,7 +132,7 @@ class ChatProcessor:
             deepseek_messages = self._build_deepseek_messages(session["messages"])
             
             # 调用DeepSeek API
-            response = self.deepseek.ask_question(deepseek_messages)
+            response = self._deepseek.ask_question(deepseek_messages)
             
             if response:
                 # 添加AI回复到会话历史
