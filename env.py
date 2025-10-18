@@ -33,6 +33,12 @@ class EnvConfig:
             'api_key': self.get('DEEPSEEK_API_KEY')
         }
     
+    def get_amap_config(self):
+        """Get AMAP configuration"""
+        return {
+            'api_key': self.get('AMAP_API_KEY')
+        }
+    
     def get_wxauto_config(self):
         """Get DeepSeek configuration"""
         return {
