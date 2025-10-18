@@ -351,11 +351,8 @@ class QBLocation:
                             logger.error("获取地址失败")
                     else:
                         logger.error("获取设备详细信息失败")
-                else:
-                    logger.error("设备列表为空")
             else:
-                logger.error("获取设备列表失败")
-            
+                logger.error("获取设备列表失败")   
         else:
             logger.error("登录失败")
         
