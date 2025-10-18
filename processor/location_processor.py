@@ -44,7 +44,7 @@ class LocationProcessor:
             is_command = self._recognize_command_intent(processed_content)
 
             if is_command:
-                self._qb_location(wxauto_client)
+                self._get_qb_location(wxauto_client)
                 return True
                             
         except Exception as e:
@@ -99,7 +99,7 @@ class LocationProcessor:
             logger.error(f"Error in command recognition: {str(e)}")
             return False
         
-    def _qb_location(self, chat_name, wxauto_client):
+    def _get_qb_location(self, chat_name, wxauto_client):
         locations = self._qb_location.get_location()
 
         if locations.size > 0:
