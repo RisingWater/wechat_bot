@@ -1,7 +1,6 @@
 import requests
-import json
 import logging
-import coord_transfrom
+import device.coord_transfrom as coord_transfrom
 from env import EnvConfig
 
 logger = logging.getLogger(__name__)
