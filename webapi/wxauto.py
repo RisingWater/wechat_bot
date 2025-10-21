@@ -284,16 +284,18 @@ class WXAuto:
                 result = response.json()
                 if result.get("success"):
                     logger.info(f"File sent successfully to '{who}': {os.path.basename(file_path)}")
+                    self.delete_file(file_id)
                     return {"success": True, "data": result, "file_info": upload_result["data"]}
                 else:
                     error_msg = result.get("message", "Unknown error in send file")
                     logger.error(f"Send file failed: {error_msg}")
+                    self.delete_file(file_id)
                     return {"success": False, "error": error_msg, "raw_data": result}
             else:
                 error_msg = f"Send file API request failed: {response.status_code} - {response.text}"
                 logger.error(error_msg)
+                self.delete_file(file_id)
                 return {"success": False, "error": error_msg, "status_code": response.status_code}
-                
         except requests.exceptions.RequestException as e:
             error_msg = f"Network error during file send: {str(e)}"
             logger.error(error_msg)
@@ -303,6 +305,48 @@ class WXAuto:
             logger.error(error_msg)
             return {"success": False, "error": error_msg}
 
+    def delete_file(self, file_id):
+        """
+        Delete uploaded file
+        
+        Args:
+            file_id (str): File ID to delete
+            
+        Returns:
+            dict: Delete operation result
+        """
+        try:
+            url = f"{self._api_url}/v1/files/{file_id}"
+            
+            headers = {
+                'accept': 'application/json',
+                'Authorization': f'Bearer {self._token}'
+            }
+            
+            response = requests.delete(url, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("message") == "文件删除成功":
+                    logger.info(f"File deleted successfully: {file_id}")
+                    return {"success": True}
+                else:
+                    error_msg = result.get("message", "Unknown deletion error")
+                    logger.error(f"File deletion failed: {error_msg}")
+                    return {"success": False, "error": error_msg}
+            else:
+                error_msg = f"Delete file API request failed: {response.status_code} - {response.text}"
+                logger.error(error_msg)
+                return {"success": False, "error": error_msg}
+                
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Network error during file deletion: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+        except Exception as e:
+            error_msg = f"Unexpected error during file deletion: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
 # Test function
 def main():
     import logging
