@@ -237,6 +237,6 @@ class ProcessRouter:
         
         # 清理文件
         for msg in message_list:
-            file_path = msg.get('file_id')
+            file_id = msg.get('file_id')
             if file_id:
                 wxauto_client.delete_file(file_id)
