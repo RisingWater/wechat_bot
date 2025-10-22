@@ -316,7 +316,7 @@ class WXAuto:
             dict: Delete operation result
         """
         try:
-            url = f"{self._api_url}/v1/files/{file_id}"
+            url = f"{self._api_url}/api/v1/files/{file_id}"
             
             headers = {
                 'accept': 'application/json',
@@ -360,7 +360,7 @@ class WXAuto:
             dict: Download operation result
         """
         try:
-            url = f"{self._api_url}/v1/files/{file_id}/download"
+            url = f"{self._api_url}/api/v1/files/{file_id}/download"
             
             headers = {
                 'accept': 'application/json',
