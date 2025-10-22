@@ -4,6 +4,7 @@ import json
 import uuid
 import os
 import shutil
+import tempfile
 import threading
 import time
 from utils.file_converter import FileConverter
@@ -33,17 +34,23 @@ class PrintProcessor:
         """
         try:
             chat_name = image_msg.get("chat_name")
-            file_path = image_msg.get("file_path")
+            file_name = image_msg.get("file_name")
+            file_id = image_msg.get("file_id")
 
-            basename = os.path.basename(file_path)  # 获取文件名
+            temp_dir = tempfile.mkdtemp()
+            file_path = os.path.join(temp_dir, file_name)
+
+            download_ret = wxauto_client.download_file(file_id, file_path)
+            
+            #{"success": False, "error": error_msg}
+            if not download_ret.get('success')
+                logger.error(f"Download failed for {file_path}: {download_ret.get('error')}")
+                self._send_error_response(wxauto_client, chat_name, f"图片下载失败: {download_ret.get('error', '未知错误')}")
+                return False
             
             logger.info(f"PrintProcessor processing image from {chat_name}: {file_path}")
 
-            # 获取file_path的文件夹路径作为输出目录
-            output_dir = os.path.dirname(file_path) + "/converted_pdfs"
-            os.makedirs(output_dir, exist_ok=True)
-
-            pdf_path = self._converter.convert_image_to_pdf(file_path, output_dir=output_dir)
+            pdf_path = self._converter.convert_image_to_pdf(file_path, output_dir=temp_dir)
 
             ret, job_id = self._printer.print_pdf(pdf_path)
 
@@ -52,7 +59,7 @@ class PrintProcessor:
                 logger.info(f"Successfully sent print job {job_id} for {pdf_path}")
 
                 # 启动线程监控打印状态
-                self._start_print_job_monitor(job_id, chat_name, basename, wxauto_client)
+                self._start_print_job_monitor(job_id, chat_name, temp_dir, file_name, wxauto_client)
 
                 return True
             else:
@@ -89,28 +96,32 @@ class PrintProcessor:
             bool: 处理成功返回True，失败返回False
         """
         try:
-            chat_name = file_msg.get("chat_name")
-            file_path = file_msg.get("file_path")
+            chat_name = image_msg.get("chat_name")
+            file_name = image_msg.get("file_name")
+            file_id = image_msg.get("file_id")
+
+            name, ext = os.path.splitext(file_name)
             
-            logger.info(f"PrintProcessor processing file from {chat_name}: {file_path}")
-
-            basename = os.path.basename(file_path)  # 获取文件名
-            name, ext = os.path.splitext(basename)
-
             if not self.is_supported_file(ext):
                 error_msg = f"无法识别文件格式，无法打印"
                 self._send_error_response(wxauto_client, chat_name, error_msg)
                 return False
 
-            output_dir = os.path.dirname(file_path) + "/converted_pdfs"
-            os.makedirs(output_dir, exist_ok=True)
+            temp_dir = tempfile.mkdtemp()
+            file_path = os.path.join(temp_dir, file_name)
 
-            new_filepath = output_dir + "/" + basename
-            shutil.move(file_path, new_filepath)
-            file_path = new_filepath
+            download_ret = wxauto_client.download_file(file_id, file_path)
+            
+            #{"success": False, "error": error_msg}
+            if not download_ret.get('success')
+                logger.error(f"Download failed for {file_path}: {download_ret.get('error')}")
+                self._send_error_response(wxauto_client, chat_name, f"图片下载失败: {download_ret.get('error', '未知错误')}")
+                return False
+            
+            logger.info(f"PrintProcessor processing file from {chat_name}: {file_path}")
 
             if ext != ".pdf":         
-                pdf_path = self._converter.convert_document_to_pdf(file_path, output_dir=output_dir)
+                pdf_path = self._converter.convert_document_to_pdf(file_path, output_dir=temp_dir)
             else:
                 pdf_path = file_path
                 
@@ -122,7 +133,7 @@ class PrintProcessor:
                 logger.info(f"Successfully sent print job {job_id} for {pdf_path}")
 
                 # 启动线程监控打印状态
-                self._start_print_job_monitor(job_id, chat_name, basename, wxauto_client)
+                self._start_print_job_monitor(job_id, chat_name, temp_dir, file_name, wxauto_client)
 
                 return True
             else:
@@ -150,7 +161,7 @@ class PrintProcessor:
             except Exception as e:
                 logger.error(f"Failed to send error response: {str(e)}")
   
-    def _start_print_job_monitor(self, job_id, chat_name, basename, wxauto_client):
+    def _start_print_job_monitor(self, job_id, chat_name, temp_dir, file_name, wxauto_client):
         """
         启动打印任务状态监控线程
         """
@@ -173,10 +184,10 @@ class PrintProcessor:
                     # 检查是否完成
                     if current_state in completed_states:
                         if current_state == 'completed':
-                            wxauto_client.send_text_message(who=chat_name, msg=f"✅ 打印任务{job_id}, {basename} 已打印完成")
+                            wxauto_client.send_text_message(who=chat_name, msg=f"✅ 打印任务{job_id}, {file_name} 已打印完成")
                             logger.info(f"Print job {job_id} completed successfully")
                         else:
-                            wxauto_client.send_text_message(who=chat_name, msg=f"❌ 打印任务{job_id}, {basename} 打印失败, 当前状态{current_state}")
+                            wxauto_client.send_text_message(who=chat_name, msg=f"❌ 打印任务{job_id}, {file_name} 打印失败, 当前状态{current_state}")
                             logger.warning(f"Print job {job_id} ended with state: {current_state}")
                         break
                     
@@ -191,7 +202,15 @@ class PrintProcessor:
                 # 循环正常结束（未break），说明超时了
                 wxauto_client.send_text_message(who=chat_name, msg="打印任务监控超时，请手动检查打印机状态")
                 logger.warning(f"Print job {job_id} monitoring timeout")
-            
+
+             # 确保清理临时目录
+            if temp_dir and os.path.exists(temp_dir):
+                try:
+                    shutil.rmtree(temp_dir, ignore_errors=True)
+                    logger.info(f"Cleaned up temporary directory: {temp_dir}")
+                except Exception as e:
+                    logger.warning(f"Failed to clean up temp directory {temp_dir}: {e}")
+                    
             logger.info(f"Stopped monitoring print job {job_id}")
         
         # 启动监控线程

@@ -1,6 +1,8 @@
 # homework.py
 import logging
 import json
+import shutil
+import tempfile
 from webapi.baidu_ocr import BaiduOCR
 from webapi.deepseek import DeepSeekAPI
 
@@ -8,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class HomeworkProcessor:
     def __init__(self, env_file=".env"):
-        self.ocr = BaiduOCR(env_file)
+        self._ocr = BaiduOCR(env_file)
         self._deepseek = DeepSeekAPI(env_file)
         self.processor_name = "homework_processor"
         logger.info(f"HomeworkProcessor initialized")
@@ -26,12 +28,24 @@ class HomeworkProcessor:
         """
         try:
             chat_name = image_msg.get("chat_name")
-            file_path = image_msg.get("file_path")
+            file_name = image_msg.get("file_name")
+            file_id = image_msg.get("file_id")
+
+            temp_dir = tempfile.mkdtemp()
+            file_path = os.path.join(temp_dir, file_name)
+
+            download_ret = wxauto_client.download_file(file_id, file_path)
+            
+            #{"success": False, "error": error_msg}
+            if not download_ret.get('success')
+                logger.error(f"Download failed for {file_path}: {download_ret.get('error')}")
+                self._send_error_response(wxauto_client, chat_name, f"图片下载失败: {download_ret.get('error', '未知错误')}")
+                return False
             
             logger.info(f"HomeworkProcessor processing image from {chat_name}: {file_path}")
             
             # 使用百度OCR处理图片
-            ocr_result = self.ocr.recognize_handwriting(file_path)
+            ocr_result = self._ocr.recognize_handwriting(file_path)
             
             if not ocr_result.get('success'):
                 logger.error(f"OCR failed for {file_path}: {ocr_result.get('error')}")
@@ -63,6 +77,16 @@ class HomeworkProcessor:
             logger.error(f"Error processing homework image: {str(e)}")
             self._send_error_response(wxauto_client, image_msg.get("chat_name"), f"处理图片时发生错误: {str(e)}")
             return False
+
+        finally:
+            # 确保清理临时目录
+            if temp_dir and os.path.exists(temp_dir):
+                try:
+                    shutil.rmtree(temp_dir, ignore_errors=True)
+                    logger.info(f"Cleaned up temporary directory: {temp_dir}")
+                except Exception as e:
+                    logger.warning(f"Failed to clean up temp directory {temp_dir}: {e}")
+
             
     def _organize_ocr_with_deepseek(self, ocr_results):
         """

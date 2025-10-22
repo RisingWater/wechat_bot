@@ -120,22 +120,22 @@ class ProcessRouter:
 
             msg_type = msg.get("type", "")
             
-            if msg_type == "image" and msg.get("download_success") == True and msg.get("file_name"):
+            if msg_type == "image" and msg.get("download_success") == True and msg.get("file_id") and msg.get("file_info"):
                 msglist.append({
                     "msg_type" : "image",
                     "chat_name": msg.get("chat_name"),
-                    "file_name": msg.get("file_name"),
-                    "file_path": self.download_path / msg.get("file_name"),
+                    "file_id": msg.get("file_id"),
+                    "file_name": msg.get("file_info").get("filename"),
                     "message_id": msg.get("id"),
                     "content": msg.get("content", ""),
                     "raw_message": msg
                 })
-            elif msg_type == "file" and msg.get("download_success") == True and msg.get("file_name"):
+            elif msg_type == "file" and msg.get("download_success") == True and msg.get("file_id") and msg.get("file_info"):
                 msglist.append({
                     "msg_type" : "file",
                     "chat_name": msg.get("chat_name"),
-                    "file_name": msg.get("file_name"),
-                    "file_path": self.download_path / msg.get("file_name"),
+                    "file_id": msg.get("file_id"),
+                    "file_name": msg.get("file_info").get("filename"),
                     "message_id": msg.get("id"),
                     "content": msg.get("content", ""),
                     "raw_message": msg
@@ -156,6 +156,16 @@ class ProcessRouter:
                     "msg_type" : "text",
                     "chat_name": msg.get("chat_name"),
                     "text_content": msg.get("content", ""),
+                    "message_id": msg.get("id"),
+                    "raw_message": msg
+                })
+
+            elif msg_type == "link" and msg.get("get_url_success") == True:
+                msglist.append({
+                    "msg_type" : "link",
+                    "chat_name": msg.get("chat_name"),
+                    "text_content": msg.get("content", ""),
+                    "url": msg.get("url"),
                     "message_id": msg.get("id"),
                     "raw_message": msg
                 })
@@ -184,7 +194,7 @@ class ProcessRouter:
                     try:
                         result = processor.process_image(msg, wxauto_client)
                         if result:
-                            logger.info(f"{processor.__class__.__name__} 成功处理图片: {msg['file_name']}")
+                            logger.info(f"{processor.__class__.__name__} 成功处理图片: {msg['text_content']}")
                             break
                     except Exception as e:
                         logger.error(f"处理器 {processor.__class__.__name__} 处理图片错误: {str(e)}")
@@ -211,13 +221,22 @@ class ProcessRouter:
                     try:
                         result = processor.process_file(msg, wxauto_client)
                         if result:
-                            logger.info(f"{processor.__class__.__name__} 成功处理文件: {msg['file_name']}")
+                            logger.info(f"{processor.__class__.__name__} 成功处理文件: {msg['text_content']}")
                             break   
                     except Exception as e:
                         logger.error(f"处理器 {processor.__class__.__name__} 处理文件错误: {str(e)}")   
+                
+                if hasattr(processor, 'process_url') and msg.get('msg_type') == 'link':
+                    try:
+                        result = processor.process_url(msg, wxauto_client)
+                        if result:
+                            logger.info(f"{processor.__class__.__name__} 成功链接: {msg['url']}")
+                            break   
+                    except Exception as e:
+                        logger.error(f"处理器 {processor.__class__.__name__} 处理链接错误: {str(e)}")   
         
-        # 清理下载文件
+        # 清理文件
         for msg in message_list:
-            file_path = msg.get('file_path')
-            if file_path:
-                os.remove(file_path)
+            file_path = msg.get('file_id')
+            if file_id:
+                wxauto_client.delete_file(file_id)

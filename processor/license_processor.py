@@ -2,6 +2,8 @@
 import logging
 import os
 import subprocess
+import shutil
+import tempfile
 
 logger = logging.getLogger(__name__)
 
@@ -23,56 +25,57 @@ class LicenseProcessor:
         """
         try:
             chat_name = file_msg.get("chat_name")
-            file_path = file_msg.get("file_path")
+            ctr_name = file_msg.get("file_name")
+            file_id = file_msg.get("file_id")
             
-            logger.info(f"LicenseProcessor processing file from {chat_name}: {file_path}")
-
-            basename = os.path.basename(file_path)  # 获取文件名
-            name, ext = os.path.splitext(basename)
-
-            output_dir = os.path.dirname(file_path)
-
-            # 检查文件扩展名
+            name, ext = os.path.splitext(ctr_name)
+             # 检查文件扩展名
             if ext.lower() != '.ctr':
                 error_msg = f"不支持的文件格式 '{ext}'，仅支持 .ctr 文件"
                 self._send_error_response(wxauto_client, chat_name, error_msg)
                 return False
 
-            # 验证文件存在
-            if not os.path.exists(file_path):
-                error_msg = f"文件不存在: {basename}"
-                self._send_error_response(wxauto_client, chat_name, error_msg)
+            temp_dir = tempfile.mkdtemp()
+            ctr_path = os.path.join(temp_dir, ctr_name)
+
+            ctl_name = name + '.ctl'
+            ctl_path = os.path.join(temp_dir, ctl_name)
+
+            download_ret = wxauto_client.download_file(file_id, ctr_path)
+
+            #{"success": False, "error": error_msg}
+            if not download_ret.get('success')
+                logger.error(f"Download failed for {ctr_path}: {download_ret.get('error')}")
+                self._send_error_response(wxauto_client, chat_name, f"图片下载失败: {download_ret.get('error', '未知错误')}")
                 return False
-                
-            # 生成输出文件名
-            output_filename = name + '.ctl'
-            ctl_path = os.path.join(output_dir, output_filename)
+            
+            logger.info(f"LicenseProcessor processing file from {chat_name}: {ctr_path}")
                 
             # 调用转换工具
-            logger.info(f"Converting {basename} to {output_filename}")
-            conversion_success = self._convert_ctr_to_ctl(file_path, ctl_path)
+            logger.info(f"Converting {ctr_name} to {ctl_name}")
+            conversion_success = self._convert_ctr_to_ctl(ctr_path, ctl_path)
                 
             if not conversion_success:
-                error_msg = f"文件转换失败: {basename}"
+                error_msg = f"文件转换失败: {ctr_name}"
                 self._send_error_response(wxauto_client, chat_name, error_msg)
                 return False
             
             # 验证生成的ctl文件
             if not os.path.exists(ctl_path):
-                error_msg = f"转换后的文件未生成: {output_filename}"
+                error_msg = f"转换后的文件未生成: {ctl_name}"
                 self._send_error_response(wxauto_client, chat_name, error_msg)
                 return False
             
             file_size = os.path.getsize(ctl_path)
             if file_size == 0:
-                error_msg = f"转换后的文件为空: {output_filename}"
+                error_msg = f"转换后的文件为空: {ctl_name}"
                 self._send_error_response(wxauto_client, chat_name, error_msg)
                 return False
             
             # 发送转换成功的消息
             wxauto_client.send_text_message(
                 who=chat_name, 
-                msg=f"✅ 文件转换成功，正在发送 {output_filename}..."
+                msg=f"✅ 文件转换成功，正在发送 {ctl_name}..."
             )
                 
             # 发送转换后的文件
@@ -80,17 +83,15 @@ class LicenseProcessor:
                 who=chat_name,
                 file_path=ctl_path,
                 exact=True,
-                description=f"由 {basename} 转换生成的许可证文件",
+                description=f"由 {ctr_name} 转换生成的许可证文件",
                 uploader="license_processor"
             )
-
-            os.remove(ctl_path)
                 
             if send_result.get("success"):
-                logger.info(f"Successfully sent converted file {output_filename} to {chat_name}")
+                logger.info(f"Successfully sent converted file {ctl_name} to {chat_name}")
                 wxauto_client.send_text_message(
                     who=chat_name, 
-                    msg=f"📤 文件发送完成: {output_filename}"
+                    msg=f"📤 文件发送完成: {ctl_name}"
                 )
                 return True
             else:
@@ -107,6 +108,15 @@ class LicenseProcessor:
                 error_msg
             )
             return False
+
+        finally:
+            # 确保清理临时目录
+            if temp_dir and os.path.exists(temp_dir):
+                try:
+                    shutil.rmtree(temp_dir, ignore_errors=True)
+                    logger.info(f"Cleaned up temporary directory: {temp_dir}")
+                except Exception as e:
+                    logger.warning(f"Failed to clean up temp directory {temp_dir}: {e}")
 
     def _convert_ctr_to_ctl(self, input_path, output_path):
         """
