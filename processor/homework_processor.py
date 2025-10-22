@@ -1,6 +1,7 @@
 # homework.py
 import logging
 import json
+import os
 import shutil
 import tempfile
 from webapi.baidu_ocr import BaiduOCR
