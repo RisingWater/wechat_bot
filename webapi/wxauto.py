@@ -363,7 +363,7 @@ class WXAuto:
             url = f"{self._api_url}/v1/files/{file_id}/download"
             
             headers = {
-                'accept': 'application/octet-stream',
+                'accept': 'application/json',
                 'Authorization': f'Bearer {self._token}'
             }
             
