@@ -347,6 +347,74 @@ class WXAuto:
             error_msg = f"Unexpected error during file deletion: {str(e)}"
             logger.error(error_msg)
             return {"success": False, "error": error_msg}
+
+    def download_file(self, file_id, file_path):
+        """
+        Download file by file_id
+        
+        Args:
+            file_id (str): File ID to download
+            file_path (str): Local path to save the downloaded file
+            
+        Returns:
+            dict: Download operation result
+        """
+        try:
+            url = f"{self._api_url}/v1/files/{file_id}/download"
+            
+            headers = {
+                'accept': 'application/octet-stream',
+                'Authorization': f'Bearer {self._token}'
+            }
+            
+            response = requests.get(url, headers=headers, timeout=30, stream=True)
+            
+            if response.status_code == 200:
+                # 确保目录存在
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                
+                # 流式下载文件
+                with open(file_path, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            f.write(chunk)
+                
+                # 验证文件是否下载成功
+                if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
+                    logger.info(f"File downloaded successfully: {file_id} -> {file_path}")
+                    return {
+                        "success": True, 
+                        "file_path": file_path,
+                        "file_size": os.path.getsize(file_path)
+                    }
+                else:
+                    error_msg = "Downloaded file is empty or not created"
+                    logger.error(error_msg)
+                    return {"success": False, "error": error_msg}
+                    
+            elif response.status_code == 404:
+                error_msg = f"File not found: {file_id}"
+                logger.error(error_msg)
+                return {"success": False, "error": error_msg}
+            else:
+                error_msg = f"Download file API request failed: {response.status_code} - {response.text}"
+                logger.error(error_msg)
+                return {"success": False, "error": error_msg}
+                
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Network error during file download: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+        except IOError as e:
+            error_msg = f"File write error: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+        except Exception as e:
+            error_msg = f"Unexpected error during file download: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+
+
 # Test function
 def main():
     import logging
