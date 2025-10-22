@@ -37,7 +37,7 @@ class HomeworkProcessor:
             download_ret = wxauto_client.download_file(file_id, file_path)
             
             #{"success": False, "error": error_msg}
-            if not download_ret.get('success')
+            if not download_ret.get('success'):
                 logger.error(f"Download failed for {file_path}: {download_ret.get('error')}")
                 self._send_error_response(wxauto_client, chat_name, f"图片下载失败: {download_ret.get('error', '未知错误')}")
                 return False
