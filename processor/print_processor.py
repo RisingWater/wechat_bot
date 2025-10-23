@@ -21,6 +21,9 @@ class PrintProcessor:
         self.processor_name = "print_processor"
         logger.info(f"PrintProcessor initialized")
     
+    def description(self) -> str:
+        return "文档打印处理器"  
+
     def process_image(self, image_msg, wxauto_client):
         """
         处理图片消息 - 实现BaseProcessor接口
