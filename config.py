@@ -77,9 +77,7 @@ if __name__ == "__main__":
 
     sqllite = ConfigManager()
     result = sqllite.find_processor("王旭")
-    if result.total > 0:
-        processors_str = result.items[0].get("processors")
-        processors = json.loads(processors_str)
-        for processor in processors:
-            print(processor)
+    logging.info(result[0])
+    logging.info(result[1])
+    logging.info(result[2])
         

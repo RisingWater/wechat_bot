@@ -18,8 +18,9 @@ class SQLiteDatabase(BaseDatabase):
         """初始化SQLite数据库连接"""
         self._config = EnvConfig(env_file)
         # 获取数据库文件的绝对路径
-        logger.info(f"数据库文件路径: {self._config.get_db_config().get("path")}")
-        self.db_path = os.path.abspath(self._config.get_db_config().get("path"))
+        db_path = self._config.get_db_config().get("path")
+        logger.info(f"数据库文件路径: {db_path}")
+        self.db_path = os.path.abspath(db_path)
         # 确保数据库目录存在
         self.db_dir = os.path.dirname(self.db_path)
         if not os.path.exists(self.db_dir):
