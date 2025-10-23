@@ -68,6 +68,11 @@ class EnvConfig:
             'password': self.get('QB_LOCATION_PASSWORD')
         }
 
+    def get_db_config(self):
+        return {
+            'path': self.get('SQLLITE_DB_PATH'),
+        }
+
 # Test function
 def main():
     config = EnvConfig()
