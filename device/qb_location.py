@@ -1,6 +1,6 @@
 import requests
 import logging
-import device.coord_transfrom as coord_transfrom
+from device.coord_transfrom import CoordTransform
 from env import EnvConfig
 
 logger = logging.getLogger(__name__)
@@ -331,7 +331,7 @@ class QBLocation:
                                 "latitude": latitude,
                                 "longitude": longitude,
                             }
-                            
+                            coord_transfrom = CoordTransform()
                             gcj02 = coord_transfrom.bd09_to_gcj02(longitude, latitude)
 
                             gcj02_location = {

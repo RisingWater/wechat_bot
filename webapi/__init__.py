@@ -6,9 +6,13 @@ Processor package for handling different types of messages
 from .baidu_ocr import BaiduOCR
 from .deepseek import DeepSeekAPI
 from .wxauto import WXAuto
+from .amap import AmapAPI
+from .tencent_stock import TencentStockAPI
 
 __all__ = [
     'BaiduOCR',
     'DeepSeekAPI',
-    'WXAuto'
+    'WXAuto',
+    'AmapAPI',
+    'TencentStockAPI'
 ]
