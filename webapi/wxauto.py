@@ -416,24 +416,25 @@ class WXAuto:
 
 
 # Test function
-def main():
-    import logging
-    logging.basicConfig(level=logging.INFO)
+if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
     
-    print("Testing WXAuto class...")
+    logger.info("Testing WXAuto class...")
     
     wxauto = WXAuto()
     
     # Test sending to specific contact
-    print("\nTesting send to specific contact...")
+    logger.info("\nTesting send to specific contact...")
     result = wxauto.send_text_message(
         who="文件传输助手",
         msg="这是一条给特定联系人的测试消息",
         exact=True
     )
-    print(f"Success: {result['success']}")
+    logger.info(f"Success: {result['success']}")
     if not result['success']:
-        print(f"Error: {result.get('error', 'Unknown error')}")
-
-if __name__ == "__main__":
-    main()
+        logger.info(f"Error: {result.get('error', 'Unknown error')}")

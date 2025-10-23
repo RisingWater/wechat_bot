@@ -78,23 +78,24 @@ class DeepSeekAPI:
             return None
     
 # Test function
-def main():
-    import logging
-    logging.basicConfig(level=logging.INFO)
+if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
     
-    print("Testing DeepSeek API...")
+    logger.info("Testing DeepSeek API...")
     
     deepseek = DeepSeekAPI()
         
     # Test with a simple question
     test_prompt = "请用一句话介绍你自己"
-    print(f"\nTesting with prompt: {test_prompt}")
+    logger.info(f"\nTesting with prompt: {test_prompt}")
     
     response = deepseek.ask_question(test_prompt)
     if response:
-        print(f"Response: {response}")
+        logger.info(f"Response: {response}")
     else:
-        print("Failed to get response from DeepSeek API")
-
-if __name__ == "__main__":
-    main()
+        logger.info("Failed to get response from DeepSeek API")

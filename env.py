@@ -1,6 +1,9 @@
 # env.py
 import os
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 class EnvConfig:
     def __init__(self, env_file=".env"):
@@ -74,22 +77,26 @@ class EnvConfig:
         }
 
 # Test function
-def main():
+if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+
     config = EnvConfig()
     
     baidu_config = config.get_baidu_ocr_config()
     deepseek_config = config.get_deepseek_config()
     wxauto_config = config.get_wxauto_config()
     
-    print("Baidu OCR Config:")
-    print(f"API Key: {baidu_config['api_key']}" if baidu_config['api_key'] else "Not set")
+    logger.info("Baidu OCR Config:")
+    logger.info(f"API Key: {baidu_config['api_key']}" if baidu_config['api_key'] else "Not set")
     
-    print("\nDeepSeek Config:")
-    print(f"API Key: {deepseek_config['api_key']}" if deepseek_config['api_key'] else "Not set")
+    logger.info("DeepSeek Config:")
+    logger.info(f"API Key: {deepseek_config['api_key']}" if deepseek_config['api_key'] else "Not set")
 
-    print("\nWXAuto Config:")
-    print(f"API Url: {wxauto_config['api_url']}" if wxauto_config['api_url'] else "Not set")
-    print(f"API Key: {wxauto_config['api_key']}" if wxauto_config['api_key'] else "Not set")
-
-if __name__ == "__main__":
-    main()
+    logger.info("WXAuto Config:")
+    logger.info(f"API Url: {wxauto_config['api_url']}" if wxauto_config['api_url'] else "Not set")
+    logger.info(f"API Key: {wxauto_config['api_key']}" if wxauto_config['api_key'] else "Not set")

@@ -219,39 +219,39 @@ class MiTV:
 
 
 # Test function
-def main():
-    import logging
-    logging.basicConfig(level=logging.INFO)
+if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
     
-    print("Testing MiTV control...")
+    logger.info("Testing MiTV control...")
     
     tv = MiTV()
     
     # Check configuration
-    print(f"MiTV configured: {tv.is_configured}")
+    logger.info(f"MiTV configured: {tv.is_configured}")
     if tv.is_configured:
-        print(f"TV IP: {tv.tv_ip}")
+        logger.info(f"TV IP: {tv.tv_ip}")
         
         # Test screen state
-        print("\n1. Checking screen state...")
+        logger.info("\n1. Checking screen state...")
         state = tv.get_screen_state()
-        print(f"Screen state: {state}")
+        logger.info(f"Screen state: {state}")
         
         # Test smart power off
-        print("\n2. Testing smart power off...")
+        logger.info("\n2. Testing smart power off...")
         if tv.smart_power_off():
-            print("Smart power off completed")
+            logger.info("Smart power off completed")
         else:
-            print("Smart power off failed")
+            logger.info("Smart power off failed")
         
         # Wait and check state again
         time.sleep(2)
         state = tv.get_screen_state()
-        print(f"Screen state after power off: {state}")
+        logger.info(f"Screen state after power off: {state}")
         
     else:
-        print("MiTV not configured properly. Please check .env file")
-
-
-if __name__ == "__main__":
-    main()
+        logger.info("MiTV not configured properly. Please check .env file")

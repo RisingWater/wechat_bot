@@ -188,34 +188,34 @@ class Printer:
 
 
 # Test function
-def main():
-    import logging
-    logging.basicConfig(level=logging.INFO)
+if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
     
-    print("Testing Printer control with python-cups...")
+    logger.info("Testing Printer control with python-cups...")
     
     printer = Printer()
     
     # Check configuration
-    print(f"Printer configured: {printer.is_configured}")
+    logger.info(f"Printer configured: {printer.is_configured}")
     if printer.is_configured:
-        print(f"Printer Name: {printer.printer_name}")
+        logger.info(f"Printer Name: {printer.printer_name}")
 
-        print("\n3. Testing PDF printing...")
+        logger.info("Testing PDF printing...")
         pdf_file = "./1.pdf"  # Replace with actual PDF file
         success, job_id = printer.print_pdf(pdf_file, False)
         if success:
-            print(f"Print job submitted: {job_id}")
+            logger.info(f"Print job submitted: {job_id}")
             # Check job status
             
             job_status = printer.get_job_status(job_id)
-            print(f"Job status: {job_status}")
+            logger.info(f"Job status: {job_status}")
         else:
-            print("Print job failed")
+            logger.info("Print job failed")
         
     else:
-        print("Printer not configured properly. Please check .env file")
-
-
-if __name__ == "__main__":
-    main()
+        logger.info("Printer not configured properly. Please check .env file")

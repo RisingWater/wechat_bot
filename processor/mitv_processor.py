@@ -247,11 +247,15 @@ class MitvProcessor:
             return "命令执行完成" if success else "命令执行失败"
     
 # 测试函数
-def main():
-    import logging
-    logging.basicConfig(level=logging.INFO)
+if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
     
-    print("Testing MitvProcessor...")
+    logger.info("Testing MitvProcessor...")
     
     # 创建处理器实例
     processor = MitvProcessor()
@@ -269,12 +273,9 @@ def main():
     ]
     
     for user_input in test_inputs:
-        print(f"\n测试输入: '{user_input}'")
+        logger.info(f"\n测试输入: '{user_input}'")
         command = processor._recognize_command_intent(user_input)
         if command:
-            print(f"识别到的命令: {command}")
+            logger.info(f"识别到的命令: {command}")
         else:
-            print("未识别到命令")
-
-if __name__ == "__main__":
-    main()
+            logger.info("未识别到命令")

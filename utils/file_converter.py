@@ -4,6 +4,8 @@ import logging
 import img2pdf
 from pathlib import Path
 
+logger = logging.getLogger(__name__)
+
 class FileConverter:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -94,7 +96,14 @@ class FileConverter:
             raise
 
 # 使用示例
-def main():
+if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+
     converter = DocumentConverter()
     
     # 转换单个文件
@@ -118,6 +127,6 @@ def main():
         for img in test_images:
             pdf_path = converter.convert_image_to_pdf(img, output_dir=output_dir)
 
-        print(f"转换完成: {pdf_path}")
+        logger.info(f"转换完成: {pdf_path}")
     except Exception as e:
-        print(f"转换失败: {e}")
+        logger.error(f"转换失败: {e}")

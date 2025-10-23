@@ -175,11 +175,15 @@ class BaiduOCR:
 
 
 # Test function
-def main():
-    import logging
-    logging.basicConfig(level=logging.INFO)
+if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
     
-    print("Testing Baidu OCR with Bearer token...")
+    logger.info("Testing Baidu OCR with Bearer token...")
     
     ocr = BaiduOCR()
     
@@ -187,16 +191,13 @@ def main():
     import os
     test_image = "test/baidu_ocr_test.jpg";
     if os.path.exists(test_image):
-        print(f"\nTesting OCR with {test_image}...")
+        logger.info(f"\nTesting OCR with {test_image}...")
         result = ocr.recognize_handwriting(test_image)
-        print(f"Success: {result['success']}")
+        logger.info(f"Success: {result['success']}")
     
         if result['success']:
-            print(result)
+            logger.info(result)
         else:
-            print(f"Error: {result.get('error', 'Unknown error')}")
+            logger.error(f"Error: {result.get('error', 'Unknown error')}")
     else:
-        print(f"Error: {test_image} is not exist")
-
-if __name__ == "__main__":
-    main()    
+        logger.error(f"Error: {test_image} is not exist")

@@ -2,6 +2,9 @@
 import json
 import urllib
 import math
+import logging
+
+logger = logging.getLogger(__name__)
 
 x_pi = 3.14159265358979324 * 3000.0 / 180.0
 pi = 3.1415926535897932384626  # π
@@ -160,6 +163,13 @@ class CoordTransform:
 
 
 if __name__ == '__main__':
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+
     lng = 128.543
     lat = 37.065
     result1 = gcj02_to_bd09(lng, lat)
@@ -171,4 +181,4 @@ if __name__ == '__main__':
 
     g = Geocoding('API_KEY')  # 这里填写你的高德api的key
     result7 = g.geocode('北京市朝阳区朝阳公园')
-    print(result1, result2, result3, result4, result5, result6, result7)
+    logger.info(result1, result2, result3, result4, result5, result6, result7)

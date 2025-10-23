@@ -1,4 +1,7 @@
 import requests
+import logging
+
+logger = logging.getLogger(__name__)
 
 class TencentStockAPI:
     """腾讯股票API"""
@@ -21,12 +24,16 @@ class TencentStockAPI:
         except Exception as e:
             return f"获取价格失败: {e}"
 
-def main():
-    tencent_api = TencentStockAPI()
-    print("腾讯股票API测试")
-    print(tencent_api.get_stock_price("sz002396"))
-    print(tencent_api.get_stock_price("sz000063"))
-    print(tencent_api.get_stock_price("sh603828"))
-
 if __name__ == "__main__":
-    main()
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+
+    tencent_api = TencentStockAPI()
+    logger.info("腾讯股票API测试")
+    logger.info(tencent_api.get_stock_price("sz002396"))
+    logger.info(tencent_api.get_stock_price("sz000063"))
+    logger.info(tencent_api.get_stock_price("sh603828"))

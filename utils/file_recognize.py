@@ -227,6 +227,12 @@ class FileRecognizer:
 
 # 使用示例
 if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
     # 创建识别器实例
     recognizer = FileRecognizer()
     
@@ -239,13 +245,13 @@ if __name__ == "__main__":
         "unknown_file"
     ]
     
-    print("文件格式识别测试")
-    print("=" * 50)
+    logger.info("文件格式识别测试")
+    logger.info("=" * 50)
     
     for file_path in test_files:
         if os.path.exists(file_path):
-            print(f"\n📄 文件: {file_path}")
-            print(f"🔍 检测结果:")
-            print(f"   推荐扩展名: {recognizer.get_extension(file_path)}")
+            logger.info(f"\n📄 文件: {file_path}")
+            logger.info(f"🔍 检测结果:")
+            logger.info(f"   推荐扩展名: {recognizer.get_extension(file_path)}")
         else:
-            print(f"\n⚠️  文件不存在: {file_path}")
+            logger.info(f"\n⚠️  文件不存在: {file_path}")

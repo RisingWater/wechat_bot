@@ -368,9 +368,18 @@ class QBLocation:
     def close(self):
         """关闭会话"""
         self._session.close()
+
+
 # 使用示例
 if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+
     qb = QBLocation()
     
     location = qb.get_location()
-    print(location)
+    logger.info(location)

@@ -214,20 +214,24 @@ class LicenseProcessor:
 
 
 # 测试函数
-def main():
-    import logging
-    logging.basicConfig(level=logging.INFO)
+if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
     
-    print("Testing LicenseProcessor class...")
+    logger.info("Testing LicenseProcessor class...")
     
     # 创建处理器实例
     processor = LicenseProcessor()
     
     # 测试文件支持检查
-    print("\nTesting file support check...")
-    print(f"Support .ctr: {processor.is_supported_file('.ctr')}")
-    print(f"Support .txt: {processor.is_supported_file('.txt')}")
-    print(f"Support .CTR: {processor.is_supported_file('.CTR')}")
+    logger.info("\nTesting file support check...")
+    logger.info(f"Support .ctr: {processor.is_supported_file('.ctr')}")
+    logger.info(f"Support .txt: {processor.is_supported_file('.txt')}")
+    logger.info(f"Support .CTR: {processor.is_supported_file('.CTR')}")
 
 if __name__ == "__main__":
     main()

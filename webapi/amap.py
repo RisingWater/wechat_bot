@@ -41,7 +41,7 @@ class AmapAPI:
             str: 保存的文件路径，失败返回None
         """
         if not self._api_key:
-            print("请提供高德地图API密钥")
+            logger.warning("请提供高德地图API密钥")
             return None
         
         url = "https://restapi.amap.com/v3/staticmap"
@@ -56,7 +56,7 @@ class AmapAPI:
         
         try:
             response = requests.get(url, params=params, timeout=10)
-            print(f"地图API状态码: {response.status_code}")
+            logger.info(f"地图API状态码: {response.status_code}")
             
             if response.status_code == 200:
                 # 如果没有指定保存路径，生成默认路径
@@ -70,27 +70,27 @@ class AmapAPI:
                 with open(save_path, 'wb') as f:
                     f.write(response.content)
                 
-                print(f"地图图片已保存: {save_path}")
+                logger.info(f"地图图片已保存: {save_path}")
                 
                 # 验证图片是否有效
                 try:
                     image = Image.open(save_path)
-                    print(f"图片尺寸: {image.size}")
+                    logger.info(f"图片尺寸: {image.size}")
                     image.close()
                 except Exception as e:
-                    print(f"图片验证失败: {e}")
+                    logger.info(f"图片验证失败: {e}")
                     return None
                     
                 return save_path
             else:
-                print(f"请求失败: {response.status_code}")
-                print(f"响应内容: {response.text}")
+                logger.error(f"请求失败: {response.status_code}")
+                logger.error(f"响应内容: {response.text}")
                 return None
                 
         except requests.exceptions.RequestException as e:
-            print(f"获取地图图片失败: {e}")
+            logger.error(f"获取地图图片失败: {e}")
             return None
         except Exception as e:
-            print(f"保存图片失败: {e}")
+            logger.error(f"保存图片失败: {e}")
             return None
 

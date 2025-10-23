@@ -1,9 +1,13 @@
 import os
 import sqlite3
+import json
+import logging
 from env import EnvConfig
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Type, TypeVar, Tuple, Union
 from db.base import BaseDBModel, BaseDatabase, QueryParams, QueryResult
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar('T', bound=BaseDBModel)
 
@@ -14,7 +18,7 @@ class SQLiteDatabase(BaseDatabase):
         """初始化SQLite数据库连接"""
         self._config = EnvConfig(env_file)
         # 获取数据库文件的绝对路径
-        print("数据库文件路径:", self._config.get_db_config().get("path"))
+        logger.info(f"数据库文件路径: {self._config.get_db_config().get("path")}")
         self.db_path = os.path.abspath(self._config.get_db_config().get("path"))
         # 确保数据库目录存在
         self.db_dir = os.path.dirname(self.db_path)
@@ -212,6 +216,14 @@ def get_all_processors(db_path: str = "database.db"):
 
 # 测试代码
 if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    logger.info("开始测试")
+    
     sqllite = SQLiteDatabase()
 
     sqllite.create_table("processors", {
@@ -223,7 +235,7 @@ if __name__ == "__main__":
     processors = [
         {"id" : "license_processor",    "name" : "license_processor",   "description" : "融易云授权处理器"},
         {"id" : "homework_processor",   "name" : "homework_processor",  "description" : "作业OCR处理器"}, 
-        {"id" : "print_processor",      "name" : "print_processor",     "description" : "文档打印处理器"},
+        {"id" : "logger.info_processor",      "name" : "logger.info_processor",     "description" : "文档打印处理器"},
         {"id" : "mitv_processor",       "name" : "mitv_processor",      "description" : "小米电视处理器"},
         {"id" : "chat_processor",       "name" : "chat_processor",      "description" : "deepseek对话处理器"},
         {"id" : "location_processor",   "name" : "location_processor",  "description" : "乔宝定位处理器"}
@@ -235,12 +247,11 @@ if __name__ == "__main__":
         )
         result = sqllite.query("processors", param)
         if result.total > 0:
-            print(f"处理器 {processor['name']} 已经存在")
+            logger.info(f"处理器 {processor['name']} 已经存在")
             continue
         sqllite.insert("processors", processor)
 
     query_all_param = QueryParams()
-
     result = sqllite.query("processors", query_all_param)
+    logger.info(json.dumps(result.items, ensure_ascii=False, indent=2))
 
-    print(result.items)
