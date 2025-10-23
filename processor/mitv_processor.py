@@ -23,7 +23,10 @@ class MitvProcessor:
         }
         
         logger.info("MitvProcessor initialized with DeepSeek command recognition")
-    
+
+    def description(self) -> str:
+        return "小米电视处理器"  
+
     def process_voice(self, voice_msg, wxauto_client):
         """
         处理语音消息 - 使用DeepSeek识别语音中的命令意图

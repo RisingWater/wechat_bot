@@ -11,6 +11,9 @@ class LicenseProcessor:
     def __init__(self, env_file=".env"):
         self.processor_name = "license_processor"
         logger.info(f"LicenseProcessor initialized")
+
+    def description(self) -> str:
+        return "融易云授权处理器"
     
     def process_file(self, file_msg, wxauto_client=None):
         """

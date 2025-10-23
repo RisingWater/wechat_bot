@@ -17,6 +17,9 @@ class LocationProcessor:
         
         logger.info("LocationProcessor initialized with DeepSeek command recognition")
     
+    def description(self) -> str:
+        return "乔宝定位处理器"
+
     def process_text(self, text_msg, wxauto_client):
         """
         处理文本消息 - 使用DeepSeek识别文本中的命令意图

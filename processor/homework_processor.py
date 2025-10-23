@@ -16,6 +16,9 @@ class HomeworkProcessor:
         self.processor_name = "homework_processor"
         logger.info(f"HomeworkProcessor initialized")
     
+    def description(self) -> str:
+        return "作业OCR处理器"
+
     def process_image(self, image_msg, wxauto_client):
         """
         处理图片消息 - 实现BaseProcessor接口

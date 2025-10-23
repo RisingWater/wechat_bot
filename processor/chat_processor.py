@@ -18,6 +18,9 @@ class ChatProcessor:
         self.session_timeout = 600  # 10分钟
         
         logger.info("ChatProcessor initialized with session memory")
+
+    def description(self) -> str:
+        return "deepseek对话处理器"
     
     def process_voice(self, voice_msg, wxauto_client):
         """
