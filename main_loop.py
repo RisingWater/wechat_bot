@@ -16,6 +16,7 @@ if not sys.platform == "win32":
 
 from env import EnvConfig
 from process_router import ProcessRouter
+from config import ConfigManager
 
 # Configure logging
 logging.basicConfig(
@@ -26,24 +27,24 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class MainLoopProcessor:
-    def __init__(self, env_file=".env", config_file="processor_config.json"):
+    def __init__(self, env_file=".env"):
         """
         初始化主循环处理器
         
         Args:
             env_file (str): 环境配置文件路径
-            config_file (str): 处理器配置文件路径
         """
         self._config = EnvConfig(env_file)
+        self._config_manager = ConfigManager(env_file)
         self.wxauto = WXAuto(env_file)
         self.running = False
         
         # 初始化处理器路由
-        self.process_router = self._init_process_router(env_file, config_file)
+        self.process_router = self._init_process_router(env_file)
         
         logger.info("MainLoopProcessor 初始化完成")
         
-    def _init_process_router(self, env_file, config_file):
+    def _init_process_router(self, env_file):
         """
         初始化处理器路由
         
@@ -55,7 +56,7 @@ class MainLoopProcessor:
             ProcessRouter: 处理器路由实例
         """
         logger.info("正在初始化处理器路由...")
-        router = ProcessRouter(config_file)
+        router = ProcessRouter()
         
         # 注册所有处理器
         router.register_processor("homework_processor", HomeworkProcessor(env_file))
@@ -78,6 +79,8 @@ class MainLoopProcessor:
             logger.info("注册授权处理器...")
         
         logger.info("所有处理器注册完成")
+
+        self._config_manager.get_all_processors()
         return router
     
     def main_loop(self, check_interval=3):
@@ -125,36 +128,35 @@ class MainLoopProcessor:
 
 def main():
     """主函数"""
-    print("=" * 60)
-    print("微信消息处理系统 - 主循环处理器")
-    print("=" * 60)
-    print("功能说明:")
-    print("- 自动监控微信新消息")
-    print("- 根据聊天名称路由到相应处理器")
-    print("- 支持作业识别、文件打印、命令处理、聊天处理等功能")
-    print("- 按配置文件精确匹配聊天名称")
-    print("=" * 60)
+    logger.info("=" * 60)
+    logger.info("微信消息处理系统 - 主循环处理器")
+    logger.info("=" * 60)
+    logger.info("功能说明:")
+    logger.info("- 自动监控微信新消息")
+    logger.info("- 根据聊天名称路由到相应处理器")
+    logger.info("- 支持作业识别、文件打印、命令处理、聊天处理等功能")
+    logger.info("- 按配置文件精确匹配聊天名称")
+    logger.info("=" * 60)
     
     try:
         # 创建处理器实例
         processor = MainLoopProcessor(
-            env_file=".env",
-            config_file="processor_config.json"
+            env_file=".env"
         )
         
         # 启动主循环
-        print("正在启动主循环...")
-        print("按 Ctrl+C 可停止程序")
-        print("-" * 40)
+        logger.info("正在启动主循环...")
+        logger.info("按 Ctrl+C 可停止程序")
+        logger.info("-" * 40)
         
         processor.main_loop(check_interval=3)
         
     except Exception as e:
         logger.error(f"程序启动失败: {e}")
-        print(f"错误: {e}")
+        logger.info(f"错误: {e}")
         return 1
     
-    print("程序正常退出")
+    logger.info("程序正常退出")
     return 0
 
 

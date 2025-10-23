@@ -2,90 +2,33 @@
 import logging
 import json
 import os
+
 from pathlib import Path
 from typing import List, Dict, Any
 from env import EnvConfig
+from config import ConfigManager
 
 logger = logging.getLogger(__name__)
 
 class ProcessRouter:
-    def __init__(self, config_file: str = "processor_config.json", env_file=".env"):
+    def __init__(self, env_file=".env"):
         self._config = EnvConfig(env_file)
+        self._config_manager = ConfigManager(env_file)
         self.processors = {}
-        self.chat_name_processor_config = {}
-        self.cmd_list = []
-        self.download_path = self._get_download_path()
-        
-        # 加载配置文件
-        self._load_config(config_file)
-        
-    def _load_config(self, config_file: str):
-        """从JSON文件加载配置"""
-        config_path = Path(config_file)
-        
-        if not config_path.exists():
-            logger.warning(f"配置文件 {config_file} 不存在，使用默认配置")
-            self._set_default_config()
-            return
-        
-        try:
-            with open(config_path, 'r', encoding='utf-8') as f:
-                config = json.load(f)
-            
-            self.chat_name_processor_config = config.get("chat_name_processor_config", {})
-            self.cmd_list = config.get("cmd_list", [])
-            
-            logger.info(f"成功加载配置文件: {config_file}")
-            logger.info(f"聊天配置: {list(self.chat_name_processor_config.keys())}")
-            logger.info(f"命令列表: {self.cmd_list}")
-            
-        except Exception as e:
-            logger.error(f"加载配置文件失败: {str(e)}，使用默认配置")
-            self._set_default_config()
-    
-    def _set_default_config(self):
-        """设置默认配置"""
-        self.chat_name_processor_config = {
-            "作业识别": ["homework_processor"],
-            "文件打印": ["print_processor"],
-            "王旭": ["cmd_processor", "chat_processor"],
-            "心颖": ["chat_processor"]
-        }
-        self.cmd_list = [
-            "打开电视",
-            "关闭电视"
-        ]
-        logger.info("使用默认配置")
-    
-    def _get_download_path(self):
-        """Get download path from environment"""
-        download_path = self._config.get('WXAUTO_DOWNLOAD_PATH')
-        if not download_path:
-            # Default download path
-            download_path = "/tmp/wxauto_download"
-        
-        path = Path(download_path)
-        if not path.exists():
-            path.mkdir(parents=True, exist_ok=True)
-            logger.info(f"Created download directory: {path}")
-        
-        return path
-
+        logger.info("Initializing process router...")
+  
     def register_processor(self, name: str, processor_instance):
         """注册处理器"""
         self.processors[name] = processor_instance
-        logger.info(f"Registered processor: {name}")
-    
+        self._config_manager.update_processor(name, processor_instance.description())
+
     def get_processors_for_chat(self, chat_name: str) -> List[Any]:
         """
         根据聊天名称和消息内容获取对应的处理器列表
         """
         processor_names = []
-        
-        # 1. 精确匹配聊天名称
-        if chat_name in self.chat_name_processor_config:
-            processor_names = self.chat_name_processor_config[chat_name]
-            logger.info(f"精确匹配聊天名称 '{chat_name}' -> {processor_names}")
+        processor_names = self._config_manager.find_processor(chat_name)
+        logger.info(f"精确匹配聊天名称 '{chat_name}' -> {processor_names}")
         
         # 去重并返回处理器实例
         valid_processors = []
@@ -116,7 +59,7 @@ class ProcessRouter:
                 logger.info(f"跳过自己发送的消息: {msg.get('content', '')[:50]}...")
                 continue
 
-            logger.info(f"开始处理消息\n%s", json.dumps(msg, indent=2))
+            logger.info(f"开始处理消息\n%s", json.dumps(msg, ensure_ascii=False,  indent=2))
 
             msg_type = msg.get("type", "")
             
@@ -187,7 +130,7 @@ class ProcessRouter:
                 
         # 处理图片消息
         for msg in message_list:
-            #logger.info(f"开始处理消息\n%s", json.dumps(msg["raw_message"], indent=2))
+            #logger.info(f"开始处理消息\n%s", json.dumps(msg["raw_message"], ensure_ascii=False, indent=2))
             processors = self.get_processors_for_chat(chat_name)
             for processor in processors:
                 if hasattr(processor, 'process_image') and msg.get('msg_type') == 'image':

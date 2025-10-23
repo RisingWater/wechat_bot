@@ -1,10 +1,10 @@
 {
-    "chat_name_processor_config": {
-      "授权生成": ["license_processor"],
-      "作业识别": ["homework_processor"],
-      "文件打印": ["print_processor"],
-      "王旭": ["license_processor", "mitv_processor", "chat_processor"],
-      "心颖": ["chat_processor"],
-      "学霸乔宝专项配套办公室": ["location_processor"]
-    }
-  }
+    "chat_name_processor_config": [
+      { "chat_name" : "授权生成", "processors" : ["license_processor"] }, 
+      { "chat_name" : "作业识别", "processors" : ["homework_processor"] },
+      { "chat_name" : "文件打印", "processors" : ["print_processor"] },
+      { "chat_name" : "王旭", "processors" : ["license_processor", "mitv_processor", "chat_processor"] },
+      { "chat_name" : "心颖", "processors" : ["chat_processor"] },
+      { "chat_name" : "学霸乔宝专项配套办公室", "processors" : ["location_processor"] }
+    ]
+}

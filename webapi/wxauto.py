@@ -85,7 +85,7 @@ class WXAuto:
             logger.error(error_msg)
             return {"success": False, "error": error_msg}
         
-    def get_next_new_message(self, wxname="", filter_mute=False):
+    def get_next_new_message(self, wxname="", filter_mute=False, timeout=120):
         """
         Get next new message via WXAuto API
         
@@ -115,7 +115,7 @@ class WXAuto:
                 "filter_mute": filter_mute
             }
             
-            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            response = requests.post(url, headers=headers, json=payload, timeout=timeout)
             
             if response.status_code == 200:
                 result = response.json()
@@ -204,7 +204,7 @@ class WXAuto:
             
             logger.info(f"Uploading file: {file_path}")
             
-            response = requests.post(url, headers=headers, files=files, data=data, timeout=60)
+            response = requests.post(url, headers=headers, files=files, data=data, timeout=300)
             
             if response.status_code == 200:
                 result = response.json()
@@ -278,7 +278,7 @@ class WXAuto:
             
             logger.info(f"Sending file to '{who}': {os.path.basename(file_path)}")
             
-            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            response = requests.post(url, headers=headers, json=payload, timeout=300)
             
             if response.status_code == 200:
                 result = response.json()
@@ -367,7 +367,7 @@ class WXAuto:
                 'Authorization': f'Bearer {self._token}'
             }
             
-            response = requests.get(url, headers=headers, timeout=30, stream=True)
+            response = requests.get(url, headers=headers, timeout=300, stream=True)
             
             if response.status_code == 200:
                 # 确保目录存在
