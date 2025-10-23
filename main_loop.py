@@ -1,15 +1,19 @@
 # main_loop.py
 import os
 import time
+import sys
 import logging
 from pathlib import Path
 from webapi.wxauto import WXAuto
 from processor.homework_processor import HomeworkProcessor
-from processor.print_processor import PrintProcessor
-from processor.mitv_processor import MitvProcessor
 from processor.chat_processor import ChatProcessor
-from processor.license_processor import LicenseProcessor
 from processor.location_processor import LocationProcessor
+
+if not sys.platform == "win32":
+    from processor.mitv_processor import MitvProcessor
+    from processor.license_processor import LicenseProcessor
+    from processor.print_processor import PrintProcessor
+
 from env import EnvConfig
 from process_router import ProcessRouter
 
@@ -57,20 +61,21 @@ class MainLoopProcessor:
         router.register_processor("homework_processor", HomeworkProcessor(env_file))
         logger.info("注册作业识别处理器...")
 
-        router.register_processor("print_processor", PrintProcessor(env_file))
-        logger.info("注册文件打印处理器...")
-
-        router.register_processor("mitv_processor", MitvProcessor(env_file))
-        logger.info("注册命令处理器...")
-
         router.register_processor("chat_processor", ChatProcessor(env_file))
         logger.info("注册聊天处理器...")
 
         router.register_processor("location_processor", LocationProcessor(env_file))
         logger.info("注册定位处理器...")
 
-        router.register_processor("license_processor", LicenseProcessor(env_file))
-        logger.info("注册授权处理器...")
+        if not sys.platform == "win32":
+            router.register_processor("print_processor", PrintProcessor(env_file))
+            logger.info("注册文件打印处理器...")
+
+            router.register_processor("mitv_processor", MitvProcessor(env_file))
+            logger.info("注册电视处理器...")
+
+            router.register_processor("license_processor", LicenseProcessor(env_file))
+            logger.info("注册授权处理器...")
         
         logger.info("所有处理器注册完成")
         return router
