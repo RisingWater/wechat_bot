@@ -3,7 +3,7 @@ from db.base import QueryResult, QueryParams
 import logging
 import json
 from env import EnvConfig
-from typing import List
+from typing import List, Tuple
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -73,15 +73,14 @@ class ConfigManager:
         logger.info(json.dumps(result.items, ensure_ascii=False, indent=2))
         return result.items
 
-    def update_chatname(self, chat_name: str, processors: List[str]) -> bool, str:
-    {
+    def update_chatname(self, chat_name: str, processors: List[str]) -> Tuple[bool, str]:
         chatname_processors = {
             "id" : chat_name,
             "chat_name" : chat_name,
             "processors" : json.dumps(processors, ensure_ascii=False)
         }
 
-         param = QueryParams(
+        param = QueryParams(
             filters={"chat_name": chat_name},
         )
 
@@ -93,9 +92,8 @@ class ConfigManager:
             logger.info(f"{chat_name} 已经存在, 更新")
             self._db.update("chatname_processors", chat_name, chatname_processors)
             return True, "更新成功" 
-    }
 
-    def add_chatname(self, chat_name: str) -> bool, str:
+    def add_chatname(self, chat_name: str) -> Tuple[bool, str]:
         chatname_processors = {
             "id" : chat_name,
             "chat_name" : chat_name,
@@ -115,7 +113,7 @@ class ConfigManager:
             self._db.insert("chatname_processors", chatname_processors)
             return True, "添加成功"
 
-    def del_chatname(self, chat_name: str) -> bool, str:
+    def del_chatname(self, chat_name: str) -> Tuple[bool, str]:
         result = self._db.delete("chatname_processors", chat_name)
         if (result):
             logger.info(f"{chat_name} 删除成功")
