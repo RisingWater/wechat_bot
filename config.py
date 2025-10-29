@@ -67,6 +67,63 @@ class ConfigManager:
 
         return processors
 
+    def get_all_chatname_processors(self):
+        query_all_param = QueryParams()
+        result = self._db.query("chatname_processors", query_all_param)
+        logger.info(json.dumps(result.items, ensure_ascii=False, indent=2))
+        return result.items
+
+    def update_chatname(self, chat_name: str, processors: List[str]) -> bool, str:
+    {
+        chatname_processors = {
+            "id" : chat_name,
+            "chat_name" : chat_name,
+            "processors" : json.dumps(processors, ensure_ascii=False)
+        }
+
+         param = QueryParams(
+            filters={"chat_name": chat_name},
+        )
+
+        result = self._db.query("chatname_processors", param)
+        if result.total == 0:
+            logger.info(f"{chat_name} 不存在, 无法更新")
+            return False, "名称不存在"
+        else:
+            logger.info(f"{chat_name} 已经存在, 更新")
+            self._db.update("chatname_processors", chat_name, chatname_processors)
+            return True, "更新成功" 
+    }
+
+    def add_chatname(self, chat_name: str) -> bool, str:
+        chatname_processors = {
+            "id" : chat_name,
+            "chat_name" : chat_name,
+            "processors" : "[]"
+        }
+
+        param = QueryParams(
+            filters={"chat_name": chat_name},
+        )
+
+        result = self._db.query("chatname_processors", param)
+        if result.total > 0:
+            logger.info(f"{chat_name} 已经存在, 忽略添加")
+            return False, "名称已经存在"
+        else:
+            logger.info(f"{chat_name} 不存在, 添加")
+            self._db.insert("chatname_processors", chatname_processors)
+            return True, "添加成功"
+
+    def del_chatname(self, chat_name: str) -> bool, str:
+        result = self._db.delete("chatname_processors", chat_name)
+        if (result):
+            logger.info(f"{chat_name} 删除成功")
+            return True, "删除成功"
+        else:
+            logger.info(f"{chat_name} 删除失败")
+            return False, "删除失败"
+
 if __name__ == "__main__":
     # Configure logging
     logging.basicConfig(
