@@ -99,9 +99,9 @@ class PrintProcessor:
             bool: 处理成功返回True，失败返回False
         """
         try:
-            chat_name = image_msg.get("chat_name")
-            file_name = image_msg.get("file_name")
-            file_id = image_msg.get("file_id")
+            chat_name = file_msg.get("chat_name")
+            file_name = file_msg.get("file_name")
+            file_id = file_msg.get("file_id")
 
             name, ext = os.path.splitext(file_name)
             
