@@ -31,7 +31,7 @@ class UpdateRemindersRequest(BaseModel):
 class WebServer:
     def __init__(self, env_file=".env"):
         self._config = EnvConfig(env_file)
-        self._config_manager = ConfigManager(env_file)
+        self._env_file = env_file
         self._app = FastAPI()
         self._server = None
         self._setup_routes()
@@ -86,12 +86,12 @@ class WebServer:
         ## 处理器
         @self._app.get("/api/processors")
         async def list_processors():
-            return self._config_manager.get_all_processors()
+            return ConfigManager(self._env_file).get_all_processors()
 
         ## 聊天列表对应的处理器
         @self._app.get("/api/chatname_processors")
         async def list_chatname_processors():
-            return self._config_manager.get_all_chatname_processors()
+            return ConfigManager(self._env_file).get_all_chatname_processors()
 
         @self._app.post("/api/chatname_processors")
         async def add_chatname_processor(request: dict):
@@ -103,7 +103,7 @@ class WebServer:
                     "message": "chat_name 不能为空"
                 }
 
-            success, message = self._config_manager.add_chatname(chat_name)
+            success, message = ConfigManager(self._env_file).add_chatname(chat_name)
             
             if success:
                 return {
@@ -119,7 +119,7 @@ class WebServer:
         @self._app.put("/api/chatname_processors/{chat_name}")
         async def update_chatname_processor(chat_name: str, request: dict):
             """更新 chatname_processor"""
-            success, message = self._config_manager.update_chatname(chat_name, request.get('processors', []))
+            success, message = ConfigManager(self._env_file).update_chatname(chat_name, request.get('processors', []))
             
             if success:
                 return {
@@ -136,7 +136,7 @@ class WebServer:
         @self._app.delete("/api/chatname_processors/{chat_name}")
         async def delete_chatname_processor(chat_name: str):
             """删除 chatname_processor"""
-            success, message = self._config_manager.del_chatname(chat_name)
+            success, message = ConfigManager(self._env_file).del_chatname(chat_name)
             
             if success:
                 return {
@@ -153,7 +153,7 @@ class WebServer:
         @self._app.get("/api/reminders")
         async def list_reminders():
             """获取所有提醒"""
-            reminders = self._config_manager.get_all_reminders()
+            reminders = ConfigManager(self._env_file).get_all_reminders()
             print(reminders)
             return {
                 "status": "success",
@@ -163,7 +163,7 @@ class WebServer:
         @self._app.post("/api/reminders")
         async def add_reminder(request: dict):
             """添加提醒"""
-            success, message = self._config_manager.add_reminder(request)
+            success, message = ConfigManager(self._env_file).add_reminder(request)
             if success:
                 return {
                     "status": "success",
@@ -178,7 +178,7 @@ class WebServer:
         @self._app.put("/api/reminders/{reminder_id}")
         async def update_reminder(reminder_id: int, request: dict):
             """更新提醒"""
-            success, message = self._config_manager.update_reminder(reminder_id, request)
+            success, message = ConfigManager(self._env_file).update_reminder(reminder_id, request)
             if success:
                 return {
                     "status": "success",
@@ -193,7 +193,7 @@ class WebServer:
         @self._app.delete("/api/reminders/{reminder_id}")
         async def delete_reminder(reminder_id: int):
             """删除提醒"""
-            success, message = self._config_manager.delete_reminder(reminder_id)
+            success, message = ConfigManager(self._env_file).delete_reminder(reminder_id)
             
             if success:
                 return {

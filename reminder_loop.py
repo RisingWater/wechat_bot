@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class ReminderLoop:
     def __init__(self, wxauto_client, env_file: str = ".env"):
-        self._config_manager = ConfigManager(env_file)
+        self._env_file = env_file
         self._running = False
         self.wxauto_client = wxauto_client
     
@@ -134,10 +134,10 @@ class ReminderLoop:
         
         return f"{title} ({calendar_type} {month}{day} {time_str})"
     
-    def _process_reminders(self):
+    def _process_reminders(self, config_manager):
         """处理所有提醒"""
         try:
-            reminders = self._config_manager.get_all_reminders()
+            reminders = config_manager.get_all_reminders()
             logger.debug(f"找到 {len(reminders)} 个提醒")
             
             triggered_count = 0
@@ -158,6 +158,8 @@ class ReminderLoop:
         """启动提醒循环"""
         self._running = True
         logger.info(f"提醒循环启动，检查间隔: {check_interval}秒")
+
+        config_manager = ConfigManager(self._env_file)
         
         # 测试农历功能
         try:
@@ -171,7 +173,7 @@ class ReminderLoop:
         try:
             while self._running:
                 try:
-                    self._process_reminders()
+                    self._process_reminders(config_manager)
                     time.sleep(check_interval)
                     
                 except KeyboardInterrupt:

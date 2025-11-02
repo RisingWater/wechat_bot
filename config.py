@@ -11,10 +11,9 @@ logger = logging.getLogger(__name__)
 class ConfigManager:
     def __init__(self, env_file=".env") -> None:
         self._db = SQLiteDatabase(env_file)
-        self._init_table()
         logger.info("ConfigManager initialized")
 
-    def _init_table(self):
+    def init_table(self):
         self._init_processsors_table()
         self._init_chatname_processors_table()
         self._init_reminders_table()

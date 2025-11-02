@@ -143,6 +143,9 @@ def main():
     logger.info("=" * 60)
     
     try:
+        #先创建表
+        ConfigManager(env_file=".env").init_table()
+
         # 创建处理器实例
         processor = MainLoopProcessor(
             env_file=".env"
