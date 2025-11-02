@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { List, Button, Space, Toast, Tag } from 'antd-mobile'
-import { AddOutline } from 'antd-mobile-icons'
+import { AddOutline, DeleteOutline, EditSOutline } from 'antd-mobile-icons'
 import ReminderForm from './ReminderForm'
 import webserverApi from '../../services/api'
 
@@ -101,10 +101,10 @@ const RemindersManager = () => {
             extra={
               <Space>
                 <Button size='mini' onClick={() => handleEdit(reminder)}>
-                  编辑
+                  <EditSOutline />
                 </Button>
                 <Button size='mini' color='danger' onClick={() => handleDelete(reminder.id)}>
-                  删除
+                  <DeleteOutline />
                 </Button>
               </Space>
             }

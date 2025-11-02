@@ -1,7 +1,7 @@
 import React from 'react'
 import { Tabs } from 'antd-mobile'
 import RemindersManager from './reminders/RemindersManager'
-//import ProcessorsManager from './processors/ProcessorsManager'
+import ProcessorsManager from './processors/ProcessorsManager'
 
 const MainTabs = () => {
   return (
@@ -10,7 +10,9 @@ const MainTabs = () => {
         <RemindersManager />
       </Tabs.Tab>
       <Tabs.Tab title='处理器配置' key='processors'>
-        {/*<ProcessorsManager />*/}
+        <ProcessorsManager />
+      </Tabs.Tab>
+      <Tabs.Tab title='微信状态' key='chatnames'> 
       </Tabs.Tab>
     </Tabs>
   )
