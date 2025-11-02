@@ -167,13 +167,13 @@ class WebServer:
             
     async def start(self):
         """异步启动服务器"""
-        web_config = uvicorn.Config(self._app, host="0.0.0.0", port=8000)
+        web_config = uvicorn.Config(self._app, host="0.0.0.0", port=6017)
         self._server = uvicorn.Server(web_config)
         await self._server.serve()
     
     def start_sync(self):
         """同步启动服务器（简单方式）"""
-        uvicorn.run(self._app, host="0.0.0.0", port=8000)
+        uvicorn.run(self._app, host="0.0.0.0", port=6017)
 
 # 使用方式
 if __name__ == "__main__":
