@@ -138,7 +138,6 @@ class ReminderLoop:
         """处理所有提醒"""
         try:
             reminders = config_manager.get_all_reminders()
-            logger.debug(f"找到 {len(reminders)} 个提醒")
             
             triggered_count = 0
             for reminder in reminders:

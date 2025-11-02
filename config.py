@@ -145,7 +145,6 @@ class ConfigManager:
     def get_all_reminders(self):
         query_all_param = QueryParams()
         result = self._db.query("reminders", query_all_param)
-        logger.info(json.dumps(result.items, ensure_ascii=False, indent=2))
         return result.items
         
     def add_reminder(self, reminder_data: dict) -> Tuple[bool, str]:
