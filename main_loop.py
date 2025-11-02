@@ -143,6 +143,11 @@ def main():
     logger.info("=" * 60)
     
     try:
+        # 创建处理器实例
+        processor = MainLoopProcessor(
+            env_file=".env"
+        )
+
         logger.info("正在启动 WebServer...")
         webserver = WebServer(env_file=".env")
         
@@ -158,7 +163,7 @@ def main():
         webserver_thread.start()
         logger.info(f"WebServer 已启动: http://localhost:6017")
 
-        reminder_loop = ReminderLoop(env_file=".env")
+        reminder_loop = ReminderLoop(processor.wxauto, env_file=".env")
 
         def run_reminder_loop():
             """在新线程中运行提醒循环"""
@@ -171,11 +176,6 @@ def main():
         reminder_thread = threading.Thread(target=run_reminder_loop, daemon=True)
         reminder_thread.start()
         logger.info("提醒循环已启动（每分钟检查一次）")
-
-        # 创建处理器实例
-        processor = MainLoopProcessor(
-            env_file=".env"
-        )
         
         # 启动主循环
         logger.info("正在启动主循环...")
