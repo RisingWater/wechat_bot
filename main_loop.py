@@ -8,6 +8,10 @@ from webapi.wxauto import WXAuto
 from processor.homework_processor import HomeworkProcessor
 from processor.chat_processor import ChatProcessor
 from processor.location_processor import LocationProcessor
+from webserver import WebServer
+from reminder_loop import ReminderLoop
+import asyncio
+import threading
 
 if not sys.platform == "win32":
     from processor.mitv_processor import MitvProcessor
@@ -139,6 +143,35 @@ def main():
     logger.info("=" * 60)
     
     try:
+        logger.info("正在启动 WebServer...")
+        webserver = WebServer(env_file=".env")
+        
+        def run_webserver():
+            """在新线程中运行 WebServer"""
+            try:
+                webserver.start_sync()
+            except Exception as e:
+                logger.error(f"WebServer 启动失败: {e}")
+        
+        # 启动 WebServer 线程
+        webserver_thread = threading.Thread(target=run_webserver, daemon=True)
+        webserver_thread.start()
+        logger.info(f"WebServer 已启动: http://localhost:6017")
+
+        reminder_loop = ReminderLoop(env_file=".env")
+
+        def run_reminder_loop():
+            """在新线程中运行提醒循环"""
+            try:
+                reminder_loop.start_loop(check_interval=60)  # 每分钟检查一次
+            except Exception as e:
+                logger.error(f"提醒循环启动失败: {e}")
+        
+        # 启动提醒循环线程
+        reminder_thread = threading.Thread(target=run_reminder_loop, daemon=True)
+        reminder_thread.start()
+        logger.info("提醒循环已启动（每分钟检查一次）")
+
         # 创建处理器实例
         processor = MainLoopProcessor(
             env_file=".env"

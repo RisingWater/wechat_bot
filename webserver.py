@@ -1,10 +1,14 @@
 import uvicorn
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
 from config import ConfigManager
 from env import EnvConfig
-from typing import Any, Dict, List, , TypeVar, Generic
+import os
+
+from fastapi.middleware.cors import CORSMiddleware
 
 # 请求数据模型
 class AddChatNameRequest(BaseModel):
@@ -31,7 +35,46 @@ class WebServer:
         self._app = FastAPI()
         self._server = None
         self._setup_routes()
+        self._setup_static_files()
+
+        self._app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["http://localhost:3000"],  # 你的前端地址
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
     
+    def _setup_static_files(self):
+        """设置静态文件服务"""
+        # 构建路径指向 front/src/dist
+        frontend_dist_path = os.path.join(os.path.dirname(__file__), "front", "src", "dist")
+        
+        if os.path.exists(frontend_dist_path):
+            print(f"找到前端构建目录: {frontend_dist_path}")
+            
+            # 列出 dist 目录内容，帮助调试
+            print("dist 目录内容:", os.listdir(frontend_dist_path))
+            # 服务静态文件（CSS、JS、图片等）
+            self._app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist_path, "assets")), name="assets")
+            
+            # 添加根路径路由，返回 index.html
+            @self._app.get("/")
+            async def serve_index():
+                return FileResponse(os.path.join(frontend_dist_path, "index.html"))
+            
+            # 处理前端路由（SPA）
+            @self._app.get("/{full_path:path}")
+            async def serve_spa(full_path: str):
+                # 检查请求的路径是否对应实际文件
+                file_path = os.path.join(frontend_dist_path, full_path)
+                if os.path.exists(file_path) and os.path.isfile(file_path):
+                    return FileResponse(file_path)
+                # 否则返回 index.html（让前端路由处理）
+                return FileResponse(os.path.join(frontend_dist_path, "index.html"))
+        else:
+            print(f"警告: 前端构建目录不存在: {frontend_dist_path}")
+
     @property
     def app(self):
         """提供对 FastAPI 应用的访问"""
@@ -39,21 +82,18 @@ class WebServer:
     
     def _setup_routes(self):
         """设置路由"""
-        @self._app.get("/")
-        async def hello_world():
-            return {"message": "Hello World!"}
         
         ## 处理器
-        @self._app.get("/processors")
+        @self._app.get("/api/processors")
         async def list_processors():
             return self._config_manager.get_all_processors()
 
         ## 聊天列表对应的处理器
-        @self._app.get("/chatname_processors")
+        @self._app.get("/api/chatname_processors")
         async def list_chatname_processors():
             return self._config_manager.get_all_chatname_processors()
 
-        @self._app.post("/chatname_processors")
+        @self._app.post("/api/chatname_processors")
         async def add_chatname_processor(request: dict):
             """添加 chatname_processor"""
             chat_name = request.get('chat_name')
@@ -76,7 +116,7 @@ class WebServer:
                     "message": message
                 }
 
-        @self._app.put("/chatname_processors/{chat_name}")
+        @self._app.put("/api/chatname_processors/{chat_name}")
         async def update_chatname_processor(chat_name: str, request: dict):
             """更新 chatname_processor"""
             success, message = self._config_manager.update_chatname(chat_name, request.get('processors', []))
@@ -93,7 +133,7 @@ class WebServer:
                 }
             
 
-        @self._app.delete("/chatname_processors/{chat_name}")
+        @self._app.delete("/api/chatname_processors/{chat_name}")
         async def delete_chatname_processor(chat_name: str):
             """删除 chatname_processor"""
             success, message = self._config_manager.del_chatname(chat_name)
@@ -110,16 +150,17 @@ class WebServer:
                 }
 
         ## 提醒    
-        @self._app.get("/reminders")
+        @self._app.get("/api/reminders")
         async def list_reminders():
             """获取所有提醒"""
             reminders = self._config_manager.get_all_reminders()
+            print(reminders)
             return {
                 "status": "success",
                 "data": reminders
             }
         
-        @self._app.post("/reminders")
+        @self._app.post("/api/reminders")
         async def add_reminder(request: dict):
             """添加提醒"""
             success, message = self._config_manager.add_reminder(request)
@@ -134,7 +175,7 @@ class WebServer:
                     "message": message
                 }
 
-        @self._app.put("/reminders/{reminder_id}")
+        @self._app.put("/api/reminders/{reminder_id}")
         async def update_reminder(reminder_id: int, request: dict):
             """更新提醒"""
             success, message = self._config_manager.update_reminder(reminder_id, request)
@@ -149,7 +190,7 @@ class WebServer:
                     "message": message
                 }
 
-        @self._app.delete("/reminders/{reminder_id}")
+        @self._app.delete("/api/reminders/{reminder_id}")
         async def delete_reminder(reminder_id: int):
             """删除提醒"""
             success, message = self._config_manager.delete_reminder(reminder_id)

@@ -17,6 +17,7 @@ class ConfigManager:
     def _init_table(self):
         self._init_processsors_table()
         self._init_chatname_processors_table()
+        self._init_reminders_table()
 
     def _init_processsors_table(self):
         self._db.create_table("processors", {
@@ -42,6 +43,7 @@ class ConfigManager:
             "minute": "INTEGER NOT NULL DEFAULT 0",     # 分钟 (0-59)
             
             "enabled": "BOOLEAN NOT NULL DEFAULT 1",    # 是否启用
+            "chatnames": "TEXT NOT NULL ",
         })
 
     def _init_chatname_processors_table(self):
@@ -166,7 +168,8 @@ class ConfigManager:
             'day': None,
             'hour': 8,
             'minute': 0,
-            'enabled': True
+            'enabled': True,
+            'chatnames': []
         }
         
         # 合并数据
@@ -220,13 +223,13 @@ class ConfigManager:
             return False, "分钟必须在 0-59 范围内"
         
         try:
-            self._db.update("reminders", update_data, {"id": reminder_id})
+            self._db.update("reminders", reminder_id, update_data)
             logger.info(f"提醒ID {reminder_id} 更新成功")
             return True, "更新成功"
         except Exception as e:
             logger.error(f"更新提醒失败: {str(e)}")
             return False, f"更新失败: {str(e)}"
-    def del_reminder(self, reminder_id: int) -> Tuple[bool, str]:
+    def delete_reminder(self, reminder_id: int) -> Tuple[bool, str]:
         result = self._db.delete("reminders", reminder_id)
         if (result):
             logger.info(f"{reminder_id} 删除成功")
