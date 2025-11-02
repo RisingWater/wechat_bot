@@ -1,9 +1,10 @@
 import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from config import ConfigManager
 from env import EnvConfig
+from typing import Any, Dict, List, , TypeVar, Generic
 
 # 请求数据模型
 class AddChatNameRequest(BaseModel):
@@ -11,6 +12,17 @@ class AddChatNameRequest(BaseModel):
 
 class UpdateProcessorsRequest(BaseModel):
     processors: List[str]  # 处理器列表，如 ["license_processor", "mitv_processor", "chat_processor"]
+
+class UpdateRemindersRequest(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    calendar_type: Optional[str] = None  # "solar" 或 "lunar"
+    year: Optional[int] = None
+    month: Optional[int] = None
+    day: Optional[int] = None
+    hour: Optional[int] = None
+    minute: Optional[int] = None
+    enabled: Optional[bool] = None
 
 class WebServer:
     def __init__(self, env_file=".env"):
@@ -31,20 +43,27 @@ class WebServer:
         async def hello_world():
             return {"message": "Hello World!"}
         
+        ## 处理器
         @self._app.get("/processors")
         async def list_processors():
             return self._config_manager.get_all_processors()
 
+        ## 聊天列表对应的处理器
         @self._app.get("/chatname_processors")
         async def list_chatname_processors():
             return self._config_manager.get_all_chatname_processors()
 
         @self._app.post("/chatname_processors")
-        async def add_chatname_processor(request: AddChatNameRequest):
+        async def add_chatname_processor(request: dict):
             """添加 chatname_processor"""
-            success, message = self._config_manager.add_chatname(
-                request.chat_name,
-            )
+            chat_name = request.get('chat_name')
+            if not chat_name:
+                return {
+                    "status": "failed",
+                    "message": "chat_name 不能为空"
+                }
+
+            success, message = self._config_manager.add_chatname(chat_name)
             
             if success:
                 return {
@@ -58,9 +77,9 @@ class WebServer:
                 }
 
         @self._app.put("/chatname_processors/{chat_name}")
-        async def update_chatname_processor(chat_name: str, request: UpdateProcessorsRequest):
-            """删除 chatname_processor"""
-            success, message = self._config_manager.update_chatname(chat_name, request.processors)
+        async def update_chatname_processor(chat_name: str, request: dict):
+            """更新 chatname_processor"""
+            success, message = self._config_manager.update_chatname(chat_name, request.get('processors', []))
             
             if success:
                 return {
@@ -89,6 +108,62 @@ class WebServer:
                     "status": "failed",
                     "message": message
                 }
+
+        ## 提醒    
+        @self._app.get("/reminders")
+        async def list_reminders():
+            """获取所有提醒"""
+            reminders = self._config_manager.get_all_reminders()
+            return {
+                "status": "success",
+                "data": reminders
+            }
+        
+        @self._app.post("/reminders")
+        async def add_reminder(request: dict):
+            """添加提醒"""
+            success, message = self._config_manager.add_reminder(request)
+            if success:
+                return {
+                    "status": "success",
+                    "message": message
+                }
+            else:
+                return {
+                    "status": "failed", 
+                    "message": message
+                }
+
+        @self._app.put("/reminders/{reminder_id}")
+        async def update_reminder(reminder_id: int, request: dict):
+            """更新提醒"""
+            success, message = self._config_manager.update_reminder(reminder_id, request)
+            if success:
+                return {
+                    "status": "success",
+                    "message": message
+                }
+            else:
+                return {
+                    "status": "failed",
+                    "message": message
+                }
+
+        @self._app.delete("/reminders/{reminder_id}")
+        async def delete_reminder(reminder_id: int):
+            """删除提醒"""
+            success, message = self._config_manager.delete_reminder(reminder_id)
+            
+            if success:
+                return {
+                    "status": "success",
+                    "message": message
+                }
+            else:
+                return {
+                    "status": "failed",
+                    "message": message
+            }
             
     async def start(self):
         """异步启动服务器"""

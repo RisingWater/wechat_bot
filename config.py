@@ -25,6 +25,25 @@ class ConfigManager:
             "description": "TEXT",
         })
 
+    def _init_reminders_table(self):
+        self._db.create_table("reminders", {
+            "id": "INTEGER PRIMARY KEY AUTOINCREMENT",  # 自增主键
+            "title": "TEXT NOT NULL",                   # 提醒标题
+            "description": "TEXT",                      # 详细描述
+            "calendar_type": "TEXT NOT NULL",           # 日历类型: solar(公历)/lunar(农历)
+            
+            # 日期字段 - 公历和农历共用
+            "year": "INTEGER",                          # 年份 NULL表示每年
+            "month": "INTEGER",                         # 月份 (1-12)，NULL表示每月
+            "day": "INTEGER",                           # 日期 (1-31)，NULL表示每天
+            
+            # 时间设置
+            "hour": "INTEGER NOT NULL DEFAULT 8",       # 小时 (0-23)
+            "minute": "INTEGER NOT NULL DEFAULT 0",     # 分钟 (0-59)
+            
+            "enabled": "BOOLEAN NOT NULL DEFAULT 1",    # 是否启用
+        })
+
     def _init_chatname_processors_table(self):
         self._db.create_table("chatname_processors", {
             "id": "TEXT PRIMARY KEY",
@@ -92,7 +111,7 @@ class ConfigManager:
             logger.info(f"{chat_name} 已经存在, 更新")
             self._db.update("chatname_processors", chat_name, chatname_processors)
             return True, "更新成功" 
-
+        
     def add_chatname(self, chat_name: str) -> Tuple[bool, str]:
         chatname_processors = {
             "id" : chat_name,
@@ -120,6 +139,100 @@ class ConfigManager:
             return True, "删除成功"
         else:
             logger.info(f"{chat_name} 删除失败")
+            return False, "删除失败"
+
+    def get_all_reminders(self):
+        query_all_param = QueryParams()
+        result = self._db.query("reminders", query_all_param)
+        logger.info(json.dumps(result.items, ensure_ascii=False, indent=2))
+        return result.items
+        
+    def add_reminder(self, reminder_data: dict) -> Tuple[bool, str]:
+        """
+        添加提醒
+        """
+        # 必填字段验证
+        if not reminder_data.get('title'):
+            return False, "标题不能为空"
+        
+        if not reminder_data.get('calendar_type') or reminder_data['calendar_type'] not in ['solar', 'lunar']:
+            return False, "日历类型必须为 solar 或 lunar"
+        
+        # 设置默认值
+        defaults = {
+            'description': '提醒',
+            'year': None,
+            'month': None,
+            'day': None,
+            'hour': 8,
+            'minute': 0,
+            'enabled': True
+        }
+        
+        # 合并数据
+        data = defaults.copy()
+        data.update(reminder_data)
+        
+        try:
+            self._db.insert("reminders", data)
+            logger.info(f"提醒 '{reminder_data['title']}' 添加成功")
+            return True, "添加成功"
+        except Exception as e:
+            logger.error(f"添加提醒失败: {str(e)}")
+            return False, f"添加失败: {str(e)}"
+    def update_reminder(self, reminder_id: int, update_data: dict) -> Tuple[bool, str]:
+        """
+        更新提醒
+        
+        Args:
+            reminder_id (int): 要更新的提醒ID
+            update_data (dict): 要更新的字段数据
+        """
+        if not reminder_id:
+            return False, "提醒ID不能为空"
+        
+        # 验证提醒是否存在
+        param = QueryParams(
+            filters={"id": reminder_id},
+        )
+        result = self._db.query("reminders", param)
+        if result.total == 0:
+            logger.info(f"提醒ID {reminder_id} 不存在")
+            return False, "提醒不存在"
+        
+        # 数据验证
+        if 'calendar_type' in update_data and update_data['calendar_type'] not in ['solar', 'lunar']:
+            return False, "日历类型必须为 solar 或 lunar"
+        
+        if 'year' in update_data and update_data['year'] is not None and update_data['year'] < 1900:
+            return False, "年份不能小于1900"
+        
+        if 'month' in update_data and update_data['month'] is not None and not (1 <= update_data['month'] <= 12):
+            return False, "月份必须在 1-12 范围内"
+        
+        if 'day' in update_data and update_data['day'] is not None and not (1 <= update_data['day'] <= 31):
+            return False, "日期必须在 1-31 范围内"
+        
+        if 'hour' in update_data and not (0 <= update_data['hour'] <= 23):
+            return False, "小时必须在 0-23 范围内"
+        
+        if 'minute' in update_data and not (0 <= update_data['minute'] <= 59):
+            return False, "分钟必须在 0-59 范围内"
+        
+        try:
+            self._db.update("reminders", update_data, {"id": reminder_id})
+            logger.info(f"提醒ID {reminder_id} 更新成功")
+            return True, "更新成功"
+        except Exception as e:
+            logger.error(f"更新提醒失败: {str(e)}")
+            return False, f"更新失败: {str(e)}"
+    def del_reminder(self, reminder_id: int) -> Tuple[bool, str]:
+        result = self._db.delete("reminders", reminder_id)
+        if (result):
+            logger.info(f"{reminder_id} 删除成功")
+            return True, "删除成功"
+        else:
+            logger.info(f"{reminder_id} 删除失败")
             return False, "删除失败"
 
 if __name__ == "__main__":
