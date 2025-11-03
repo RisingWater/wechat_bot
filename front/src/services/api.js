@@ -1,8 +1,8 @@
 import axios from 'axios'
 
 // 根据你的后端地址调整
-const API_BASE = 'http://localhost:6017/api'
-//const API_BASE = '/api'
+//const API_BASE = 'http://localhost:6017/api'
+const API_BASE = '/api'
 
 const api = axios.create({
   baseURL: API_BASE,
