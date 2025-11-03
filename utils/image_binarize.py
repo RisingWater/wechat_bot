@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 class ImageBinarrize:
     def __init__(self):
         """初始化文件识别器"""
-    def remove_shadows_simple_contrast(img_path, kernel_size=501, contrast=1.8, brightness=0):
+    def remove_shadows_simple_contrast(self, img_path, kernel_size=501, contrast=1.8, brightness=0):
         """
         去除阴影并直接调整对比度
         Args:
@@ -43,7 +43,7 @@ class ImageBinarrize:
         
         return result, shadow_removed, gray
 
-    def binarize_image(image, threshold=127, invert=False):
+    def binarize_image(self, image, threshold=127, invert=False):
         """
         对图像进行二值化处理
         Args:
@@ -62,7 +62,7 @@ class ImageBinarrize:
         
         return binary
 
-    def adaptive_binarize_better(image, block_size=31, C=10, method='gaussian', invert=False):
+    def adaptive_binarize_better(self, image, block_size=31, C=10, method='gaussian', invert=False):
         """
         改进的自适应二值化
         Args:
@@ -87,7 +87,7 @@ class ImageBinarrize:
                                         cv2.THRESH_BINARY, block_size, C)
         return binary
 
-    def process_pipeline(img_path, 
+    def process_pipeline(self, img_path, 
                         kernel_size=601, 
                         contrast=2.0, 
                         brightness=10,
@@ -110,7 +110,7 @@ class ImageBinarrize:
             enhanced: 增强后的图像（未二值化）
         """
         # 1. 去阴影和对比度增强
-        enhanced, shadow_removed, original = remove_shadows_simple_contrast(
+        enhanced, shadow_removed, original = self.remove_shadows_simple_contrast(
             img_path, kernel_size, contrast, brightness
         )
         
@@ -118,13 +118,13 @@ class ImageBinarrize:
         
         # 2. 二值化（如果需要）
         if binarize:
-            final_result = binarize_image(enhanced, threshold, invert)
+            final_result = self.binarize_image(enhanced, threshold, invert)
             #final_result = adaptive_binarize_better(enhanced, invert=invert)
         
         return final_result, enhanced
 
-    def process_image(input_path, output_path):
-        final_result, enhanced = process_pipeline(
+    def process_image(self, input_path, output_path):
+        final_result, enhanced = self.process_pipeline(
             input_path,
             kernel_size=601,
             contrast=2.0,
