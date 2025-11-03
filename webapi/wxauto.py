@@ -468,7 +468,7 @@ class WXAuto:
             logger.error(error_msg)
             return {"success": False, "error": error_msg}
     
-    def login(self, wxname: str) -> Dict[str, Any]:
+    def login(self, wxname = "") -> Dict[str, Any]:
         """
         Login to WeChat
         
