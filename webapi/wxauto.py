@@ -443,11 +443,17 @@ class WXAuto:
             
             if response.status_code == 200:
                 result = response.json()
-                logger.info(f"WeChat online status checked successfully: {wxname}")
-                return {
-                    "success": True,
-                    "data": result
-                }
+                logger.info(f"WeChat online status checked successfully: {result}")
+                if not result.get("success"):
+                    return {
+                        "success": False,
+                        "data": result
+                    }
+                else:
+                    return {
+                        "success": True,
+                        "data": result
+                    }
             else:
                 error_msg = f"IsOnline API request failed: {response.status_code} - {response.text}"
                 logger.error(error_msg)
