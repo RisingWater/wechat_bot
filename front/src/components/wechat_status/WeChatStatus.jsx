@@ -33,17 +33,10 @@ const WeChatStatus = () => {
       const result = await webserverApi.getWeChatStatus()
       
       if (result.status === 'success') {
-        // 这里根据实际API返回的数据结构调整
-        const wechatStatus = result.data.data?.status || 'offline'
-        setStatus(wechatStatus)
-        
-        if (wechatStatus === 'online') {
-          Toast.show('微信在线')
-        } else if (wechatStatus === 'offline') {
-          Toast.show('微信已离线')
-        }
+        Toast.show('微信状态正常')
+        setStatus('online')
       } else {
-        Toast.show('状态检查失败')
+        Toast.show('微信状态异常')
         setStatus('offline')
       }
     } catch (error) {
