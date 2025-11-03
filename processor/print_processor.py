@@ -60,7 +60,7 @@ class PrintProcessor:
 
             logger.info(f"PrintProcessor processing image binarize {chat_name}: {binarize_file_path}")
 
-            pdf_path = self._converter.convert_image_to_pdf(s, output_dir=temp_dir)
+            pdf_path = self._converter.convert_image_to_pdf(binarize_file_path, output_dir=temp_dir)
 
             ret, job_id = self._printer.print_pdf(pdf_path)
 
