@@ -9,6 +9,7 @@ import threading
 import time
 from utils.file_converter import FileConverter
 from utils.file_recognize import FileRecognizer
+from utils.image_binarize import ImageBinarrize
 from device.print import Printer
 
 logger = logging.getLogger(__name__)
@@ -42,6 +43,7 @@ class PrintProcessor:
 
             temp_dir = tempfile.mkdtemp()
             file_path = os.path.join(temp_dir, file_name)
+            binarize_file_path = os.path.join(temp_dir, "binarize_" + file_name)
 
             download_ret = wxauto_client.download_file(file_id, file_path)
             
@@ -53,7 +55,12 @@ class PrintProcessor:
             
             logger.info(f"PrintProcessor processing image from {chat_name}: {file_path}")
 
-            pdf_path = self._converter.convert_image_to_pdf(file_path, output_dir=temp_dir)
+            image_binarize = ImageBinarrize()
+            image_binarize.process_image(input_path=file_path, output_path=binarize_file_path)
+
+            logger.info(f"PrintProcessor processing image binarize {chat_name}: {binarize_file_path}")
+
+            pdf_path = self._converter.convert_image_to_pdf(s, output_dir=temp_dir)
 
             ret, job_id = self._printer.print_pdf(pdf_path)
 
