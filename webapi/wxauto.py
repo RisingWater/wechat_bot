@@ -4,6 +4,8 @@ import json
 import os
 import logging
 from env import EnvConfig
+import base64
+from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
@@ -411,6 +413,166 @@ class WXAuto:
             return {"success": False, "error": error_msg}
         except Exception as e:
             error_msg = f"Unexpected error during file download: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+
+    def is_online(self, wxname="") -> Dict[str, Any]:
+        """
+        Check if WeChat is online (wxautox specific)
+        
+        Args:
+            wxname (str): WeChat account name
+            
+        Returns:
+            dict: Online status result
+        """
+        try:
+            url = f"{self._api_url}/v1/wechat/isonline"
+            
+            headers = {
+                'accept': 'application/json',
+                'Authorization': f'Bearer {self._token}',
+                'Content-Type': 'application/json'
+            }
+            
+            payload = {
+                "wxname": wxname
+            }
+            
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            
+            if response.status_code == 200:
+                result = response.json()
+                logger.info(f"WeChat online status checked successfully: {wxname}")
+                return {
+                    "success": True,
+                    "data": result
+                }
+            else:
+                error_msg = f"IsOnline API request failed: {response.status_code} - {response.text}"
+                logger.error(error_msg)
+                return {"success": False, "error": error_msg}
+                
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Network error during is_online check: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+        except Exception as e:
+            error_msg = f"Unexpected error during is_online check: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+    
+    def login(self, wxname: str) -> Dict[str, Any]:
+        """
+        Login to WeChat
+        
+        Args:
+            wxname (str): WeChat account name
+            
+        Returns:
+            dict: Login operation result
+        """
+        try:
+            url = f"{self._api_url}/v1/wechat/login"
+            
+            headers = {
+                'accept': 'application/json',
+                'Authorization': f'Bearer {self._token}',
+                'Content-Type': 'application/json'
+            }
+            
+            payload = {
+                "wxname": wxname
+            }
+            
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            
+            if response.status_code == 200:
+                result = response.json()
+                logger.info(f"WeChat login initiated successfully: {wxname}")
+                return {
+                    "success": True,
+                    "data": result
+                }
+            else:
+                error_msg = f"Login API request failed: {response.status_code} - {response.text}"
+                logger.error(error_msg)
+                return {"success": False, "error": error_msg}
+                
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Network error during login: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+        except Exception as e:
+            error_msg = f"Unexpected error during login: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+    
+   
+    def get_qrcode(self, wxname="") -> Dict[str, Any]:
+        """
+        Get WeChat login QR code and convert to base64
+        
+        Args:
+            wxname (str): WeChat account name
+            
+        Returns:
+            dict: QR code operation result with base64 image data
+        """
+        try:
+            url = f"{self._api_url}/v1/wechat/qrcode"
+            
+            headers = {
+                'accept': 'image/png',  # 期望接收图片
+                'Authorization': f'Bearer {self._token}',
+                'Content-Type': 'application/json'
+            }
+            
+            payload = {
+                "wxname": wxname
+            }
+            
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            
+            if response.status_code == 200:
+                # 直接获取图片二进制数据
+                image_data = response.content
+                
+                # 检查是否是有效的图片数据
+                if len(image_data) == 0:
+                    error_msg = "QR code image data is empty"
+                    logger.error(error_msg)
+                    return {"success": False, "error": error_msg}
+                
+                # 将图片转换为base64
+                base64_image = base64.b64encode(image_data).decode('utf-8')
+                data_url = f"data:image/png;base64,{base64_image}"
+                
+                logger.info(f"QR code retrieved successfully: {wxname}, size: {len(image_data)} bytes")
+                
+                return {
+                    "success": True,
+                    "data": {
+                        "qrcode_base64": data_url,
+                        "image_size": len(image_data),
+                        "wxname": wxname
+                    }
+                }
+            elif response.status_code == 404:
+                error_msg = "QR code not available"
+                logger.error(error_msg)
+                return {"success": False, "error": error_msg}
+            else:
+                error_msg = f"QRCode API request failed: {response.status_code} - {response.text}"
+                logger.error(error_msg)
+                return {"success": False, "error": error_msg}
+                
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Network error during QR code retrieval: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+        except Exception as e:
+            error_msg = f"Unexpected error during QR code retrieval: {str(e)}"
             logger.error(error_msg)
             return {"success": False, "error": error_msg}
 

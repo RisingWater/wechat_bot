@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from config import ConfigManager
 from env import EnvConfig
+from webapi.wxauto import WXAuto
 import os
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,7 +30,8 @@ class UpdateRemindersRequest(BaseModel):
     enabled: Optional[bool] = None
 
 class WebServer:
-    def __init__(self, env_file=".env"):
+    def __init__(self, wxauto_client, env_file=".env"):
+        self.wxauto_client = wxauto_client
         self._config = EnvConfig(env_file)
         self._env_file = env_file
         self._app = FastAPI()
@@ -83,6 +85,49 @@ class WebServer:
     def _setup_routes(self):
         """设置路由"""
         
+        ## 微信状态
+        @self._app.get("/api/wechat_status")
+        async def get_wechat_status():
+            result = self.wxauto_client.is_online()
+            if result["success"]:
+                return {
+                    "status": "success",
+                    "data": result
+                }
+            else:
+                return {
+                    "status": "failed",
+                    "data": result
+                }
+
+        @self._app.post("/api/wechat_login")
+        async def get_wechat_status():
+            result = self.wxauto_client.login()
+            if result["success"]:
+                return {
+                    "status": "success",
+                    "data": result
+                }
+            else:
+                return {
+                    "status": "failed",
+                    "data": result
+                }
+
+        @self._app.get("/api/wechat_qrcode")
+        async def get_wechat_qrcode():
+            result = self.wxauto_client.get_qrcode()
+            if result["success"]:
+                return {
+                    "status": "success",
+                    "data": result
+                }
+            else:
+                return {
+                    "status": "failed",
+                    "data": result
+                }
+
         ## 处理器
         @self._app.get("/api/processors")
         async def list_processors():
@@ -218,7 +263,8 @@ class WebServer:
 
 # 使用方式
 if __name__ == "__main__":
-    server = WebServer()
+    wxauto = WXAuto()
+    server = WebServer(wxauto)
     server.start_sync()
     
     # 方式2：异步启动（需要在异步环境中）

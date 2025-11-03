@@ -1,8 +1,8 @@
 import axios from 'axios'
 
 // 根据你的后端地址调整
-//const API_BASE = 'http://localhost:6017'
-const API_BASE = '/api'
+const API_BASE = 'http://localhost:6017/api'
+//const API_BASE = '/api'
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -45,6 +45,11 @@ export const webserverApi = {
   
   // processors 相关
   getProcessors: () => api.get('/processors'),
+
+  // 微信状态相关
+  getWeChatStatus: () => api.get('/wechat_status'),
+  wechatLogin: () => api.post('/wechat_login'),
+  getWeChatQRCode: () => api.get('/wechat_qrcode'),
 }
 
 export default webserverApi

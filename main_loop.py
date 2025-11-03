@@ -152,7 +152,7 @@ def main():
         )
 
         logger.info("正在启动 WebServer...")
-        webserver = WebServer(env_file=".env")
+        webserver = WebServer(processor.wxauto, env_file=".env")
         
         def run_webserver():
             """在新线程中运行 WebServer"""
