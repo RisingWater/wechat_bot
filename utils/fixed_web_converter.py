@@ -6,6 +6,7 @@ import sys
 import logging
 from bs4 import BeautifulSoup
 import tempfile
+import re
 import base64
 import urllib.parse
 from docx import Document
@@ -201,7 +202,10 @@ class FixedWebConverter:
             logger.info("正在获取和清理网页内容...")
             html_content, html_title = self.fetch_and_clean_html(url)
 
-            output_path = os.path.join(output_dir, f"{html_title}.docx")
+            safe_title = re.sub(r'[<>:"/\\|?*]', '', html_title)
+            safe_title = safe_title.replace(' ', '_')  # 空格替换为下划线
+
+            output_path = os.path.join(output_dir, f"{safe_title}.docx")
             
             logger.info("正在转换为DOCX...")
             success = self.convert_html_to_docx(html_content, output_path)
