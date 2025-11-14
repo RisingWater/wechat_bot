@@ -146,19 +146,19 @@ class FixedWebConverter:
             # 方法1：检查 drawing 元素
             drawings = run._element.findall('.//' + qn('w:drawing'))
             if drawings:
-                print("paragraph.picture: w:drawing")
+                #print("paragraph.picture: w:drawing")
                 return True
             
             # 方法2：检查 graphic 元素
             graphics = run._element.findall('.//' + qn('a:graphic'))
             if graphics:
-                print("paragraph.picture: w:graphic")
+                #print("paragraph.picture: w:graphic")
                 return True
             
             # 方法3：直接查找 blip 元素（图片引用）
             blips = run._element.findall('.//' + qn('a:blip'))
             if blips:
-                print("paragraph.picture: w:blip")
+                #print("paragraph.picture: w:blip")
                 return True
 
         return False
