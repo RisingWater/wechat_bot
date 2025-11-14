@@ -35,16 +35,18 @@ class UrlSaveProcessor:
             url = link_msg.get("url")
 
             temp_dir = tempfile.mkdtemp()
-            docx_name = os.path.join(temp_dir, "output.docx")
+
+            wxauto_client.send_text_message(who=chat_name, msg=f"开始转换网页链接...")
 
             converter = FixedWebConverter()
 
-            converter.convert_url_to_docx(url, docx_name)
+            docx_name = converter.convert_url_to_docx(url, temp_dir)
 
             if os.path.exists(docx_name):
                 wxauto_client.send_file_message(who=chat_name, file_path=docx_name)
+                wxauto_client.send_text_message(who=chat_name, msg=f"网页链接转换完成...")
             else:
-                self._send_error_response(wxauto_client, chat_name, "转化docx文件失败，请检查链接")
+                self._send_error_response(wxauto_client, chat_name, "转化docx文件失败，请检查链接是否正确")
                             
         except Exception as e:
             logger.error(f"Error processing printer file: {str(e)}")

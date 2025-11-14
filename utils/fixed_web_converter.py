@@ -58,7 +58,6 @@ class FixedWebConverter:
         except Exception as e:
             logger.warning(f"下载图片失败 {img_url}: {e}")
             return None
-
     def fetch_and_clean_html(self, url):
         """获取并清理HTML内容，处理图片"""
         try:
@@ -68,10 +67,14 @@ class FixedWebConverter:
             
             soup = BeautifulSoup(response.content, 'html.parser')
             
+            # 获取网页标题
+            title = soup.find('title')
+            page_title = title.get_text().strip() if title else "无标题"
+            
             # 移除不需要的元素
             for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside']):
                 element.decompose()
-       
+    
             # 处理图片 - 下载并替换为base64
             for img in soup.find_all('img'):
                 img_src = img.get('src')
@@ -92,7 +95,8 @@ class FixedWebConverter:
             main_content = soup.find('main') or soup.find('article') or soup.find('body')
             cleaned_html = str(main_content)
             
-            return cleaned_html
+            # 返回两个值：清理后的HTML和网页标题
+            return cleaned_html, page_title
             
         except Exception as e:
             logger.error(f"获取或清理HTML失败: {e}")
@@ -182,22 +186,25 @@ class FixedWebConverter:
             logger.error(f"清理空段落失败: {e}")
             return False
 
-    def convert_url_to_docx(self, url, output_path):
+    def convert_url_to_docx(self, url, output_dir):
         """主转换函数"""
         try:
             logger.info("正在获取和清理网页内容...")
-            html_content = self.fetch_and_clean_html(url)
+            html_content, html_title = self.fetch_and_clean_html(url)
+
+            output_path = os.path.join(output_dir, f"{html_title}.docx")
             
             logger.info("正在转换为DOCX...")
             success = self.convert_html_to_docx(html_content, output_path)
-
-            self.remove_empty_paragraphs(output_path)
+            if not success:
+                return None
             
-            return success
+            self.remove_empty_paragraphs(output_path)
+            return output_path
             
         except Exception as e:
             logger.error(f"转换过程失败: {e}")
-            return False
+            return None
     
 def main():
     import argparse
