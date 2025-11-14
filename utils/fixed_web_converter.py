@@ -67,9 +67,18 @@ class FixedWebConverter:
             
             soup = BeautifulSoup(response.content, 'html.parser')
             
-            # 获取网页标题
-            title = soup.find('title')
-            page_title = title.get_text().strip() if title else "无标题"
+            # 获取网页标题 - 优先使用 og:title，如果没有则使用 title 标签
+            page_title = "无标题"
+            
+            # 1. 首先检查 og:title
+            og_title = soup.find('meta', property='og:title')
+            if og_title and og_title.get('content'):
+                page_title = og_title['content'].strip()
+            else:
+                # 2. 如果没有 og:title，使用标准的 title 标签
+                title_tag = soup.find('title')
+                if title_tag and title_tag.get_text():
+                    page_title = title_tag.get_text().strip()
             
             # 移除不需要的元素
             for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside']):
