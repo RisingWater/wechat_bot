@@ -175,9 +175,9 @@ class FixedWebConverter:
                 # 严格检查：段落必须完全没有任何内容
                 # 没有文本 并且 没有runs 或者 所有runs都是空的
                 text_empty = not paragraph.text.strip()
-                print("paragraph.text: ", paragraph.text.strip())
+                # print("paragraph.text: ", paragraph.text.strip())
                 runs_empty = not self.paragraph_has_picture(paragraph)
-                print("paragraph.picture: ", runs_empty)
+                # print("paragraph.picture: ", runs_empty)
                 
                 if text_empty and runs_empty:
                     empty_paragraphs.append(paragraph)
