@@ -42,7 +42,7 @@ class UrlSaveProcessor:
             converter.convert_url_to_docx(url, docx_name)
 
             if os.path.exists(docx_name):
-                wxauto_client.send_file(who=chat_name, file_path=docx_name)
+                wxauto_client.send_file_message(who=chat_name, file_path=docx_name)
             else:
                 self._send_error_response(wxauto_client, chat_name, "转化docx文件失败，请检查链接")
                             
