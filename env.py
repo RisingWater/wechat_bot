@@ -76,6 +76,12 @@ class EnvConfig:
             'path': self.get('SQLLITE_DB_PATH'),
         }
 
+    def get_open_door_config(self):
+        return {
+            'key': self.get('OPEN_DOOR_KEY'),
+            'location': self.get('OPEN_DOOR_LOCATION'),
+        }
+
 # Test function
 if __name__ == "__main__":
     # Configure logging
