@@ -38,9 +38,19 @@ class DsmLoop:
         self._running = False
         self.wxauto_client = wxauto_client
         self._dsmxp = DSMSmartDoorAPI(env_file)
+        self._last_process_time = time.time()
+        self.interval = 180
     
     def process_loop(self, config_manager):
         """处理所有提醒"""
+        current_time = time.time()
+        time_since_last = current_time - self._last_process_time
+        if time_since_last < self.interval:
+            return
+        
+        # 更新上次执行时间
+        self._last_process_time = current_time
+
         try:
             loglist = self._dsmxp.get_log()
             

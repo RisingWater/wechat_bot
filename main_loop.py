@@ -175,7 +175,7 @@ def main():
         def run_detector_loop():
             """在新线程中运行提醒循环"""
             try:
-                detector_loop.start_loop(check_interval=60)  # 每分钟检查一次
+                detector_loop.start_loop(check_interval=1)  # 每秒检查一次
             except Exception as e:
                 logger.error(f"提醒循环启动失败: {e}")
         

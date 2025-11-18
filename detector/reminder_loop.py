@@ -14,6 +14,8 @@ class ReminderLoop:
         self._env_file = env_file
         self._running = False
         self.wxauto_client = wxauto_client
+        self._last_process_time = time.time()
+        self.interval = 60
     
     def _get_current_lunar_date(self) -> tuple:
         """获取当前农历日期"""
@@ -135,6 +137,14 @@ class ReminderLoop:
         return f"{title} ({calendar_type} {month}{day} {time_str})"
     
     def process_loop(self, config_manager):
+        current_time = time.time()
+        time_since_last = current_time - self._last_process_time
+        if time_since_last < self.interval:
+            return
+        
+        # 更新上次执行时间
+        self._last_process_time = current_time
+        
         """处理所有提醒"""
         try:
             reminders = config_manager.get_all_reminders()

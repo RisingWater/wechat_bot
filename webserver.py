@@ -250,6 +250,21 @@ class WebServer:
                     "status": "failed",
                     "message": message
             }
+
+        @self._app.post("/api/dsm_detected_interval_change")
+        async def dsm_detected_interval_change(request: dict):
+            """更新 DSM 检测间隔"""
+            interval = request.get("interval")
+            if interval is None:
+                return {
+                    "status": "failed",
+                    "message": "interval 不能为空"
+                }
+            success, message = ConfigManager(self._env_file).update_dsm_detected_interval(interval)
+            return {
+                "status": "failed",
+                "message": message
+            }
             
     async def start(self):
         """异步启动服务器"""
