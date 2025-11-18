@@ -8,11 +8,13 @@ from .deepseek import DeepSeekAPI
 from .wxauto import WXAuto
 from .amap import AmapAPI
 from .tencent_stock import TencentStockAPI
+from .open_door import OpenDoorAPI
 
 __all__ = [
     'BaiduOCR',
     'DeepSeekAPI',
     'WXAuto',
     'AmapAPI',
-    'TencentStockAPI'
+    'TencentStockAPI',
+    'OpenDoorAPI',
 ]
