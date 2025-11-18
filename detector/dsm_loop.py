@@ -15,20 +15,21 @@ router_data = [
         "name" : "乔宝", 
         "detectors" : [
             { 
-                "chatname" : "学霸乔宝专项配套办公室",
-                "type" : "notify"
-            }
-        ]
-    },
-    {
-        "name" : "*", 
-        "detectors" : [
-            { 
-                "chatname" : "王旭",
+                "chatname" : "王旭", #"学霸乔宝专项配套办公室",
                 "type" : "notify"
             }
         ]
     }
+    #,
+    #{
+    #    "name" : "*", 
+    #    "detectors" : [
+    #        { 
+    #            "chatname" : "王旭",
+    #            "type" : "notify"
+    #        }
+    #    ]
+    #}
 ]
 
 class DsmLoop:
