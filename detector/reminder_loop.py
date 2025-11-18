@@ -134,7 +134,7 @@ class ReminderLoop:
         
         return f"{title} ({calendar_type} {month}{day} {time_str})"
     
-    def _process_reminders(self, config_manager):
+    def process_loop(self, config_manager):
         """处理所有提醒"""
         try:
             reminders = config_manager.get_all_reminders()
@@ -153,64 +153,3 @@ class ReminderLoop:
         except Exception as e:
             logger.error(f"处理提醒时出错: {e}")
     
-    def start_loop(self, check_interval: int = 60):
-        """启动提醒循环"""
-        self._running = True
-        logger.info(f"提醒循环启动，检查间隔: {check_interval}秒")
-
-        config_manager = ConfigManager(self._env_file)
-        
-        # 测试农历功能
-        try:
-            lunar_year, lunar_month, lunar_day = self._get_current_lunar_date()
-            solar_year, solar_month, solar_day = self._get_current_solar_date()
-            logger.info(f"当前公历: {solar_year}年{solar_month}月{solar_day}日")
-            logger.info(f"当前农历: {lunar_year}年{lunar_month}月{lunar_day}日")
-        except Exception as e:
-            logger.warning(f"农历功能测试失败: {e}")
-        
-        try:
-            while self._running:
-                try:
-                    self._process_reminders(config_manager)
-                    time.sleep(check_interval)
-                    
-                except KeyboardInterrupt:
-                    logger.info("收到中断信号，停止提醒循环")
-                    break
-                except Exception as e:
-                    logger.error(f"提醒循环出错: {e}")
-                    time.sleep(check_interval)  # 出错后继续运行
-                    
-        finally:
-            self._running = False
-            logger.info("提醒循环已停止")
-    
-    def stop_loop(self):
-        """停止提醒循环"""
-        self._running = False
-        logger.info("正在停止提醒循环...")
-
-# 独立运行
-if __name__ == "__main__":
-    import sys
-    
-    # 配置日志
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(sys.stdout),
-            logging.FileHandler('reminder_loop.log', encoding='utf-8')
-        ]
-    )
-    
-    try:
-        reminder_loop = ReminderLoop()
-        reminder_loop.start_loop(check_interval=60)  # 每分钟检查一次
-        
-    except KeyboardInterrupt:
-        logger.info("程序被用户中断")
-    except Exception as e:
-        logger.error(f"程序运行出错: {e}")
-        sys.exit(1)

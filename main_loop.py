@@ -10,7 +10,7 @@ from processor.chat_processor import ChatProcessor
 from processor.location_processor import LocationProcessor
 from processor.urlsave_processor import UrlSaveProcessor
 from webserver import WebServer
-from reminder_loop import ReminderLoop
+from detector_loop import DetectorLoop
 import asyncio
 import threading
 
@@ -170,18 +170,18 @@ def main():
         webserver_thread.start()
         logger.info(f"WebServer 已启动: http://localhost:6017")
 
-        reminder_loop = ReminderLoop(processor.wxauto, env_file=".env")
+        detector_loop = DetectorLoop(processor.wxauto, env_file=".env")
 
-        def run_reminder_loop():
+        def run_detector_loop():
             """在新线程中运行提醒循环"""
             try:
-                reminder_loop.start_loop(check_interval=60)  # 每分钟检查一次
+                detector_loop.start_loop(check_interval=60)  # 每分钟检查一次
             except Exception as e:
                 logger.error(f"提醒循环启动失败: {e}")
         
         # 启动提醒循环线程
-        reminder_thread = threading.Thread(target=run_reminder_loop, daemon=True)
-        reminder_thread.start()
+        detector_thread = threading.Thread(target=run_detector_loop, daemon=True)
+        detector_thread.start()
         logger.info("提醒循环已启动（每分钟检查一次）")
         
         # 启动主循环

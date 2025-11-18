@@ -17,6 +17,14 @@ class ConfigManager:
         self._init_processsors_table()
         self._init_chatname_processors_table()
         self._init_reminders_table()
+        self._init_dsm_log_table()
+
+    def _init_dsm_log_table(self):
+        self._db.create_table("dsm_log", {
+            "id": "INTEGER PRIMARY KEY AUTOINCREMENT",  # 自增主键
+            "timestamp": "TEXT NOT NULL",               # 时间戳
+            "name": "TEXT NOT NULL",                 # 日志消息
+        })
 
     def _init_processsors_table(self):
         self._db.create_table("processors", {
@@ -235,6 +243,57 @@ class ConfigManager:
         else:
             logger.info(f"{reminder_id} 删除失败")
             return False, "删除失败"
+
+    def add_dsm_log(self, timestamp: str, name: str) -> Tuple[bool, str]:
+        """
+        添加DSM日志记录
+        """
+        log_data = {
+            "timestamp": timestamp,
+            "name": name
+        }
+        
+        try:
+            self._db.insert("dsm_log", log_data)
+            logger.info(f"DSM日志记录添加成功: {timestamp} - {message}")
+            return True, "添加成功"
+        except Exception as e:
+            logger.error(f"添加DSM日志记录失败: {str(e)}")
+            return False, f"添加失败: {str(e)}"
+
+    def get_dsm_log(self, timestamp: str, name: str) -> bool:
+        """
+        判断DSM日志记录是否存在
+        """
+        param = QueryParams(
+            filters={
+                "timestamp": timestamp,
+                "name": name
+            }
+        )
+
+        try:
+            result = self._db.query("dsm_log",param)
+            if result.total > 0:
+                return True
+            else:
+                return False
+        except Exception as e:
+            logger.error(f"获取DSM日志记录失败: {str(e)}")
+            return False
+
+    def del_all_dsm_log(self) -> Tuple[bool, str]:
+        """
+        删除所有DSM日志记录
+        """
+        try:
+            self._db.delete_all("dsm_log")
+            logger.info(f"删除所有DSM日志记录成功")
+            return True, "删除成功"
+        except Exception as e:
+            logger.error(f"删除DSM日志记录失败: {str(e)}")
+            return False, f"删除失败: {str(e)}"
+
 
 if __name__ == "__main__":
     # Configure logging

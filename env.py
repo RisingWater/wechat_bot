@@ -13,7 +13,7 @@ class EnvConfig:
     def _load_env(self):
         """Load environment variables from .env file"""
         if self._env_file.exists():
-            with open(self._env_file, 'r') as f:
+            with open(self._env_file, 'r', encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
                     if line and not line.startswith('#') and '=' in line:
@@ -80,6 +80,11 @@ class EnvConfig:
         return {
             'key': self.get('OPEN_DOOR_KEY'),
             'location': self.get('OPEN_DOOR_LOCATION'),
+        }
+
+    def get_dsm_smart_door_config(self):
+        return {
+            'token': self.get('DSM_TOKEN'),
         }
 
 # Test function
