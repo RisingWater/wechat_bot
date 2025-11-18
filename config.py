@@ -255,7 +255,7 @@ class ConfigManager:
         
         try:
             self._db.insert("dsm_log", log_data)
-            logger.info(f"DSM日志记录添加成功: {timestamp} - {message}")
+            logger.info(f"DSM日志记录添加成功: {timestamp} - {name}")
             return True, "添加成功"
         except Exception as e:
             logger.error(f"添加DSM日志记录失败: {str(e)}")
