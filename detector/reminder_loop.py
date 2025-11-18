@@ -144,7 +144,9 @@ class ReminderLoop:
         
         # 更新上次执行时间
         self._last_process_time = current_time
-        
+
+        logger.info("开始处理reminder_loop 任务")
+
         """处理所有提醒"""
         try:
             reminders = config_manager.get_all_reminders()

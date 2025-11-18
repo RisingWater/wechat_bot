@@ -51,6 +51,8 @@ class DsmLoop:
         # 更新上次执行时间
         self._last_process_time = current_time
 
+        logger.info("开始处理dsm_loop 任务")
+
         try:
             loglist = self._dsmxp.get_log()
             

@@ -42,10 +42,8 @@ class DetectorLoop:
                 try:
                     # 循环处理所有注册的检测器
                     for name, processor in self.processors.items():
-                        logger.info(f"正在处理处理器: {name}")
                         if hasattr(processor, "process_loop"):
                             processor.process_loop(config_manager)
-                        logger.info(f"处理器处理完毕: {name}")
 
                     time.sleep(check_interval)
                     
