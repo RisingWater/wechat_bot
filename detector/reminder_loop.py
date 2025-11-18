@@ -15,8 +15,10 @@ class ReminderLoop:
         self._running = False
         self.wxauto_client = wxauto_client
         self._last_process_time = time.time()
-        self.interval = 60
-    
+        self._interval = 60
+
+    def set_interval(self, interval: int):
+        return
     def _get_current_lunar_date(self) -> tuple:
         """获取当前农历日期"""
         try:
@@ -139,7 +141,7 @@ class ReminderLoop:
     def process_loop(self, config_manager):
         current_time = time.time()
         time_since_last = current_time - self._last_process_time
-        if time_since_last < self.interval:
+        if time_since_last < self._interval:
             return
         
         # 更新上次执行时间

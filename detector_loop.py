@@ -26,6 +26,12 @@ class DetectorLoop:
         self.register_processor("dsm_loop", DsmLoop(self.wxauto_client, env_file))
         logger.info("注册DSM开门记录处理器...")
 
+    def set_interval(self, name: str, interval: int):
+        """设置处理器的运行间隔"""
+        if name in self.processors:
+            self.processors[name].set_interval(interval)
+            logger.info(f"设置处理器 {name} 的运行间隔为 {interval} 秒")
+
     def register_processor(self, name: str, processor_instance):
         """注册处理器"""
         self.processors[name] = processor_instance

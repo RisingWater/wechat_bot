@@ -155,21 +155,6 @@ def main():
             env_file=".env"
         )
 
-        logger.info("正在启动 WebServer...")
-        webserver = WebServer(processor.wxauto, env_file=".env")
-        
-        def run_webserver():
-            """在新线程中运行 WebServer"""
-            try:
-                webserver.start_sync()
-            except Exception as e:
-                logger.error(f"WebServer 启动失败: {e}")
-        
-        # 启动 WebServer 线程
-        webserver_thread = threading.Thread(target=run_webserver, daemon=True)
-        webserver_thread.start()
-        logger.info(f"WebServer 已启动: http://localhost:6017")
-
         detector_loop = DetectorLoop(processor.wxauto, env_file=".env")
 
         def run_detector_loop():
@@ -182,7 +167,22 @@ def main():
         # 启动提醒循环线程
         detector_thread = threading.Thread(target=run_detector_loop, daemon=True)
         detector_thread.start()
-        logger.info("提醒循环已启动（每分钟检查一次）")
+        logger.info("提醒循环已启动")
+
+        logger.info("正在启动 WebServer...")
+        webserver = WebServer(processor.wxauto, detector_loop, env_file=".env")
+        
+        def run_webserver():
+            """在新线程中运行 WebServer"""
+            try:
+                webserver.start_sync()
+            except Exception as e:
+                logger.error(f"WebServer 启动失败: {e}")
+        
+        # 启动 WebServer 线程
+        webserver_thread = threading.Thread(target=run_webserver, daemon=True)
+        webserver_thread.start()
+        logger.info(f"WebServer 已启动: http://localhost:6017")
         
         # 启动主循环
         logger.info("正在启动主循环...")

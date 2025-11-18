@@ -30,8 +30,9 @@ class UpdateRemindersRequest(BaseModel):
     enabled: Optional[bool] = None
 
 class WebServer:
-    def __init__(self, wxauto_client, env_file=".env"):
+    def __init__(self, wxauto_client, detector_loop, env_file=".env"):
         self.wxauto_client = wxauto_client
+        self.detector_loop = detector_loop
         self._config = EnvConfig(env_file)
         self._env_file = env_file
         self._app = FastAPI()
@@ -254,17 +255,8 @@ class WebServer:
         @self._app.post("/api/dsm_detected_interval_change")
         async def dsm_detected_interval_change(request: dict):
             """更新 DSM 检测间隔"""
-            interval = request.get("interval")
-            if interval is None:
-                return {
-                    "status": "failed",
-                    "message": "interval 不能为空"
-                }
-            success, message = ConfigManager(self._env_file).update_dsm_detected_interval(interval)
-            return {
-                "status": "failed",
-                "message": message
-            }
+            self.detector_loop.set_interval("dsm_loop", 5)
+            
             
     async def start(self):
         """异步启动服务器"""
