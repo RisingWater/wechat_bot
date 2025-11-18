@@ -53,7 +53,7 @@ class DSMSmartDoorAPI:
 
         for record in log_data:
             logDate = record.get("logDate")
-            if record.get('dayTag') == '昨天':
+            if record.get('dayTag') == '今天':
                 for detail in record.get('logDetails', []):
                     if detail.get('logType') == '指纹开门':
                         logTime = detail.get('logTime')

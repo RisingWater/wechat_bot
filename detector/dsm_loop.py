@@ -15,7 +15,7 @@ router_data = [
         "name" : "乔宝", 
         "detectors" : [
             { 
-                "chatname" : "王旭", #"学霸乔宝专项配套办公室",
+                "chatname" : "学霸乔宝专项配套办公室",
                 "type" : "notify"
             }
         ]
@@ -55,7 +55,7 @@ class DsmLoop:
                         if route["name"] == "*" or route["name"] == name:
                             for detector in route["detectors"]:
                                 if detector["type"] == "notify":
-                                    msg = f"🎉🎉🎉 {name} 于 {timestamp} 到家啦"
+                                    msg = f"🎉🎉🎉 {name} 于 {timestamp.split(' ')[1]} 到家啦"
                                     self.wxauto_client.send_text_message(detector["chatname"], msg)
                                     break
                     
