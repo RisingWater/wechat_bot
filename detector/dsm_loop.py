@@ -48,7 +48,7 @@ class DsmLoop:
                 name = log.get("name")
                 timestamp = log.get("timestamp")
                 if not config_manager.get_dsm_log(timestamp, name):
-                    logger.info(f"发现新开门记录: {logTime}")
+                    logger.info(f"发现新开门记录: {timestamp}")
                     logger.add_dsm_log(timestamp, name)
 
                     for route in router_data:

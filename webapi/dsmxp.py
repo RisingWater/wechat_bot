@@ -56,6 +56,7 @@ class DSMSmartDoorAPI:
             if record.get('dayTag') == '昨天':
                 for detail in record.get('logDetails', []):
                     if detail.get('logType') == '指纹开门':
+                        logTime = detail.get('logTime')
                         name = re.findall(r'【(.*?)】', detail.get('content', ''))
                         if name :
                             info ={
