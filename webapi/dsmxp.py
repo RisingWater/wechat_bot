@@ -60,7 +60,7 @@ class DSMSmartDoorAPI:
                         if name :
                             info ={
                                 "name": name[0],
-                                "timestamp": logDate + " " + logTime,"
+                                "timestamp": logDate + " " + logTime
                             }
                             loglist.append(info)
 
