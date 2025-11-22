@@ -196,7 +196,7 @@ class AudioPlayer:
     def stop_monitoring(self):
         """停止监控线程"""
         self._stop_monitoring = True
-        if self.monitor_thread and self.monitor_thread.is_alive():
+        if self.monitor_thread and self.monitor_thread.is_alive() and self.monitor_thread.ident != threading.current_thread().ident:
             self.monitor_thread.join(timeout=5)
         self.logger.info("会话监控线程已停止")
 
