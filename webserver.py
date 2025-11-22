@@ -253,7 +253,7 @@ class WebServer:
             }
 
         @self._app.get("/api/dsm_detected_interval_change")
-        async def dsm_detected_interval_change(request: dict):
+        async def dsm_detected_interval_change():
             """更新 DSM 检测间隔"""
             self.detector_loop.set_interval("dsm_loop", 5)
             return {
