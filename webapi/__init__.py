@@ -10,6 +10,7 @@ from .amap import AmapAPI
 from .tencent_stock import TencentStockAPI
 from .open_door import OpenDoorAPI
 from .dsmxp import DSMSmartDoorAPI
+from .audio_player import AudioPlayer
 
 __all__ = [
     'BaiduOCR',
@@ -19,4 +20,5 @@ __all__ = [
     'TencentStockAPI',
     'OpenDoorAPI',
     'DSMSmartDoorAPI',
+    'AudioPlayer'
 ]

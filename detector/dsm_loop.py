@@ -6,6 +6,7 @@ from typing import List, Dict, Any
 from config import ConfigManager
 from zhdate import ZhDate
 from webapi.dsmxp import DSMSmartDoorAPI
+from webapi.audio_player import AudioPlayer
 
 # 设置日志
 logger = logging.getLogger(__name__)
@@ -19,17 +20,16 @@ router_data = [
                 "type" : "notify"
             }
         ]
+    },
+    {
+        "name" : "顶子", 
+        "detectors" : [
+            { 
+                "text" : "王旭，欢迎回家",
+                "type" : "audio_play"
+            }
+        ]
     }
-    #,
-    #{
-    #    "name" : "*", 
-    #    "detectors" : [
-    #        { 
-    #            "chatname" : "王旭",
-    #            "type" : "notify"
-    #        }
-    #    ]
-    #}
 ]
 
 class DsmLoop:
@@ -90,6 +90,10 @@ class DsmLoop:
                                 if detector["type"] == "notify":
                                     msg = f"🎉🎉🎉 {name} 于 {timestamp.split(' ')[1]} 到家啦"
                                     self.wxauto_client.send_text_message(detector["chatname"], msg)
+                                    send_msg = True
+                                    break
+                                elif detector["type"] == "audio_play":
+                                    AudioPlayer().speak(detector["text"])
                                     send_msg = True
                                     break
                     
