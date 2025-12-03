@@ -18,7 +18,8 @@ router_data = [
         "detectors" : [
             { 
                 "chatname" : "学霸乔宝专项配套办公室",
-                "type" : "notify"
+                "text" : "王煜乔已经到家啦",
+                "type" : "notify",
             }
         ]
     },
@@ -91,6 +92,8 @@ class DsmLoop:
                                 if detector["type"] == "notify":
                                     msg = f"🎉🎉🎉 {name} 于 {timestamp.split(' ')[1]} 到家啦"
                                     self.wxauto_client.send_text_message(detector["chatname"], msg)
+                                    if detector.get("text"):
+                                        AudioPlayer().speak(detector["text"])
                                     send_msg = True
                                     break
                                 elif detector["type"] == "audio_play":
