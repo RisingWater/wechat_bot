@@ -66,7 +66,7 @@ class StockProcessor:
             if not stock_dict:
                 error_msg = f"未找到股票代码 '{stock_code}' 对应的股票名称"
                 self._send_error_response(wxauto_client, chat_name, error_msg)
-                return False
+                return True
             
             stock_name = stock_dict.get("name")
 
@@ -97,7 +97,7 @@ class StockProcessor:
                 if response.status_code != 200:
                     error_msg = f"预测API调用失败，状态码：{response.status_code}"
                     self._send_error_response(wxauto_client, chat_name, error_msg)
-                    return False
+                    return True
                 
                 result = response.json()
                 
@@ -105,7 +105,7 @@ class StockProcessor:
                 if "predictions" not in result or not result["predictions"]:
                     error_msg = "预测API返回数据格式异常"
                     self._send_error_response(wxauto_client, chat_name, error_msg)
-                    return False
+                    return True
                 
                 # 处理预测结果
                 chart_image = result.get("chart_image", "")
@@ -119,19 +119,19 @@ class StockProcessor:
             except requests.exceptions.Timeout:
                 error_msg = "预测API请求超时，请稍后重试"
                 self._send_error_response(wxauto_client, chat_name, error_msg)
-                return False
+                return True
             except requests.exceptions.ConnectionError:
                 error_msg = "无法连接到预测API服务器"
                 self._send_error_response(wxauto_client, chat_name, error_msg)
-                return False
+                return True
             except Exception as e:
                 error_msg = f"预测API调用异常：{str(e)}"
                 self._send_error_response(wxauto_client, chat_name, error_msg)
-                return False
+                return True
 
         except Exception as e:
             logger.error(f"Error processing chat text: {str(e)}")
-            return False
+            return True
        
     def _send_chart_image(self, wxauto_client, chat_name, chart_image_base64):
         """

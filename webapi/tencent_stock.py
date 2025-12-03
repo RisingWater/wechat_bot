@@ -9,7 +9,15 @@ class TencentStockAPI:
         return
     def get_stock_price(self, symbol):
         """获取股票当前价格"""
-        url = f"http://qt.gtimg.cn/q={symbol}"
+        # 判断市场前缀
+        if symbol.startswith('6'):
+            prefix = 'sh'
+        elif symbol.startswith('0') or symbol.startswith('3'):
+            prefix = 'sz'
+        else:
+            return None
+
+        url = f"http://qt.gtimg.cn/q={prefix}{symbol}"
         try:
             response = requests.get(url, timeout=5)
             data = response.text.split('~')
