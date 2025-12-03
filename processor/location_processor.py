@@ -19,6 +19,9 @@ class LocationProcessor:
     
     def description(self) -> str:
         return "乔宝定位处理器"
+    
+    def priority(self) -> int:
+        return 10
 
     def process_text(self, text_msg, wxauto_client):
         """

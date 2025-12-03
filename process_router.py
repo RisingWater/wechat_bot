@@ -41,6 +41,9 @@ class ProcessRouter:
         if not valid_processors:
             logger.info(f"没有找到匹配的处理器 for chat: {chat_name}")
         
+        # 按照 priority 排序，大的在前面
+        valid_processors.sort(key=lambda processor: processor.priority(), reverse=True)
+
         return valid_processors
     
     def extract_messages_by_type(self, message_batch: Dict[str, Any]) -> List:

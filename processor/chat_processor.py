@@ -22,6 +22,9 @@ class ChatProcessor:
     def description(self) -> str:
         return "deepseek对话处理器"
     
+    def priority(self) -> int:
+        return 0
+    
     def process_voice(self, voice_msg, wxauto_client):
         """
         处理语音消息

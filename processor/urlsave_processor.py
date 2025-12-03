@@ -18,6 +18,9 @@ class UrlSaveProcessor:
     
     def description(self) -> str:
         return "公众号链接保存处理器"  
+    
+    def priority(self) -> int:
+        return 10
         
     def process_url(self, link_msg, wxauto_client):
         """

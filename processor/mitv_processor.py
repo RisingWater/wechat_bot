@@ -26,6 +26,9 @@ class MitvProcessor:
 
     def description(self) -> str:
         return "小米电视处理器"  
+    
+    def priority(self) -> int:
+        return 10
 
     def process_voice(self, voice_msg, wxauto_client):
         """

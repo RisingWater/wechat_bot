@@ -15,6 +15,9 @@ class LicenseProcessor:
     def description(self) -> str:
         return "融易云授权处理器"
     
+    def priority(self) -> int:
+        return 10
+    
     def process_file(self, file_msg, wxauto_client=None):
         """
         处理文件消息 - 实现BaseProcessor接口
