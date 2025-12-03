@@ -9,6 +9,7 @@ from .homework_processor import HomeworkProcessor
 from .chat_processor import ChatProcessor
 from .location_processor import LocationProcessor
 from .urlsave_processor import UrlSaveProcessor
+from .stock_processor import StockProcessor
 
 if not sys.platform == "win32":
     from .print_processor import PrintProcessor
@@ -24,11 +25,13 @@ if not sys.platform == "win32":
         'MitvProcessor',
         'LicenseProcessor',
         'UrlSaveProcessor'
+        'StockProcessor'
     ]
 else:
     __all__ = [
         'HomeworkProcessor',
         'ChatProcessor', 
         'LocationProcessor',
-        'UrlSaveProcessor'
+        'UrlSaveProcessor',
+        'StockProcessor'
     ]

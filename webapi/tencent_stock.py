@@ -22,8 +22,8 @@ class TencentStockAPI:
                 'price': current_price
             }
         except Exception as e:
-            return f"获取价格失败: {e}"
-
+            return None
+    
 if __name__ == "__main__":
     # Configure logging
     logging.basicConfig(

@@ -9,6 +9,7 @@ from processor.homework_processor import HomeworkProcessor
 from processor.chat_processor import ChatProcessor
 from processor.location_processor import LocationProcessor
 from processor.urlsave_processor import UrlSaveProcessor
+from processor.stock_processor import StockProcessor
 from webserver import WebServer
 from detector_loop import DetectorLoop
 import asyncio
@@ -75,6 +76,9 @@ class MainLoopProcessor:
 
         router.register_processor("urlsave_processor", UrlSaveProcessor(env_file))
         logger.info("公众号链接保存处理器...")
+
+        router.register_processor("stock_processor", StockProcessor(env_file))
+        logger.info("注册股票处理器...")
 
         if not sys.platform == "win32":
             router.register_processor("print_processor", PrintProcessor(env_file))
