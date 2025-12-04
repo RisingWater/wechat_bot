@@ -32,7 +32,7 @@ class TencentStockAPI:
         except Exception as e:
             return None
 
-    def get_stock_code(self, stock_name)
+    def get_stock_code(self, stock_name):
         """根据股票名称获取6位数字代码"""
         url = "https://smartbox.gtimg.cn/s3/"
         params = {"v": "2", "q": name, "t": "all"}
