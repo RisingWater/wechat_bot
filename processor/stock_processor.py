@@ -79,8 +79,9 @@ class StockProcessor:
             else:
                 stock_code = TencentStockAPI().get_stock_code(text_content)
                 if not stock_code:
-                    error_msg = f"未找到股票名称 '{text_content}' 对应的股票代码"
-                    self._send_error_response(wxauto_client, chat_name, error_msg)
+                    #error_msg = f"未找到股票名称 '{text_content}' 对应的股票代码"
+                    #self._send_error_response(wxauto_client, chat_name, error_msg)
+                    logger.warning(f"未找到股票名称 '{text_content}' 对应的股票代码")
                     return False
                 stock_name = text_content
 
