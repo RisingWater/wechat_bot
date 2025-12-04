@@ -61,6 +61,7 @@ class StockProcessor:
                 #去掉 @呼噜一号，再去除头尾的空格
                 text_content = text_content.replace("@呼噜一号", "")
                 text_content = text_content.replace(" ", "")
+                text_content = text_content.strip()
 
 
             # 检查text_content是否为6位数字
