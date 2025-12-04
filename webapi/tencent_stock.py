@@ -1,5 +1,6 @@
 import requests
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -44,17 +45,21 @@ class TencentStockAPI:
                 
             # 解析JSONP
             text = resp.text
-            start = text.find("_(") + 2
-            end = text.rfind(")")
-            data = json.loads(text[start:end])
+            start = text.find("\"") + 1
+            end = text.rfind("") - 1
+            data = text[start:end]
             
-            # 提取第一个A股代码
-            for item in data[0].get("item", []):
-                code = item.get("c", "")
-                if code.startswith(("sh", "sz")) and len(code) == 8:
-                    return code[2:]  # 返回6位数字代码
+            items = data.split("~")
+
+            if len(items) < 2:
+                return None
+
+            code = items[1]
             
-            return None
+            if re.match(r'^\d{6}$', str(code)):
+                return code
+            else:
+                return None
         except:
             return None
 
@@ -68,6 +73,8 @@ if __name__ == "__main__":
 
     tencent_api = TencentStockAPI()
     logger.info("腾讯股票API测试")
-    logger.info(tencent_api.get_stock_price("sz002396"))
-    logger.info(tencent_api.get_stock_price("sz000063"))
-    logger.info(tencent_api.get_stock_price("sh603828"))
+    #logger.info(tencent_api.get_stock_price("sz002396"))
+    #logger.info(tencent_api.get_stock_price("sz000063"))
+    #logger.info(tencent_api.get_stock_price("sh603828"))
+    logger.info(tencent_api.get_stock_code("星网锐捷"))
+    logger.info(tencent_api.get_stock_code("星网锐jie"))
