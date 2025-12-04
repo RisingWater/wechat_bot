@@ -69,6 +69,11 @@ class ChatProcessor:
         try:
             chat_name = text_msg.get("chat_name")
             text_content = text_msg.get("text_content")
+
+            if chat_type == "group":
+                if not "@呼噜一号" in text_content:
+                    logger.info(f"text message from {chat_name}, not @bot skipping")
+                    return False
             
             # 清理过期会话
             self._cleanup_expired_sessions()
