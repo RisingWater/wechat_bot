@@ -155,7 +155,7 @@ class StockProcessor:
                 if chart_image:
                     self._send_chart_image(wxauto_client, chat_name, chart_image)
 
-                if predictions:
+                if chat_type == "group" and predictions:
                     self._send_explain(wxauto_client, chat_name, stock_name, predict_date, predictions)
                 
                 return True
