@@ -35,7 +35,7 @@ class TencentStockAPI:
     def get_stock_code(self, stock_name):
         """根据股票名称获取6位数字代码"""
         url = "https://smartbox.gtimg.cn/s3/"
-        params = {"v": "2", "q": name, "t": "all"}
+        params = {"v": "2", "q": stock_name, "t": "all"}
         
         try:
             resp = requests.get(url, params=params, timeout=3)
