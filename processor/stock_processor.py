@@ -44,7 +44,7 @@ class StockProcessor:
         try:
             prompt = f"你是一个精通中国传统文化、易经八卦、阴阳五行理论的股票分析师，擅长将现代金融市场数据与古典玄学相结合，提供独特的分析。"
             prompt += f"现在要求解释股票{stock_name}，预测{predict_date}的k线为{predictions}"
-            prompt += f"以股票名称的五行属性，结合预测日期进行解释，以一个算命师的口吻来解释预测结果，不超过100字，结果中必须要带有股票名称。不要输出其它额外的内容。"
+            prompt += f"以股票名称的五行属性，卦象，结合预测日期进行解释，以一个算命师的口吻来解释预测结果，不超过100字，结果中必须要带有股票名称。不要输出其它额外的内容。"
 
             response = self._deepseek.ask_question(prompt)
             
