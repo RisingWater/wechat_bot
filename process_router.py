@@ -69,6 +69,7 @@ class ProcessRouter:
             if msg_type == "image" and msg.get("download_success") == True and msg.get("file_id") and msg.get("file_info"):
                 msglist.append({
                     "msg_type" : "image",
+                    "chat_type": msg.get("chat_type"),
                     "chat_name": msg.get("chat_name"),
                     "file_id": msg.get("file_id"),
                     "file_name": msg.get("file_info").get("filename"),
@@ -79,6 +80,7 @@ class ProcessRouter:
             elif msg_type == "file" and msg.get("download_success") == True and msg.get("file_id") and msg.get("file_info"):
                 msglist.append({
                     "msg_type" : "file",
+                    "chat_type": msg.get("chat_type"),
                     "chat_name": msg.get("chat_name"),
                     "file_id": msg.get("file_id"),
                     "file_name": msg.get("file_info").get("filename"),
@@ -90,6 +92,7 @@ class ProcessRouter:
             elif msg_type == "voice" and msg.get("voice_convert_success") == True:
                 msglist.append({
                     "msg_type" : "voice",
+                    "chat_type": msg.get("chat_type"),
                     "chat_name": msg.get("chat_name"),
                     "voice_text": msg.get("voice_to_text", ""),
                     "message_id": msg.get("id"),
@@ -100,6 +103,7 @@ class ProcessRouter:
             elif msg_type == "text":
                 msglist.append({
                     "msg_type" : "text",
+                    "chat_type": msg.get("chat_type"),
                     "chat_name": msg.get("chat_name"),
                     "text_content": msg.get("content", ""),
                     "message_id": msg.get("id"),
@@ -109,6 +113,7 @@ class ProcessRouter:
             elif msg_type == "link" and msg.get("get_url_success") == True:
                 msglist.append({
                     "msg_type" : "link",
+                    "chat_type": msg.get("chat_type"),
                     "chat_name": msg.get("chat_name"),
                     "text_content": msg.get("content", ""),
                     "url": msg.get("url"),

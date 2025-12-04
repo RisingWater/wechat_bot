@@ -52,24 +52,37 @@ class StockProcessor:
         try:
             chat_name = text_msg.get("chat_name")
             text_content = text_msg.get("text_content")
+            chat_type = text_msg.get("chat_type")
             
-            # 检查text_content是否为6位数字
-            if not re.match(r'^\d{6}$', str(text_content)):
-                error_msg = f"股票代码格式错误：'{text_content}'，请输入6位数字股票代码（如：000001）"
-                self._send_error_response(wxauto_client, chat_name, error_msg)
-                return False
-            
-            stock_code = text_content
-            
-            # 获取股票名称
-            stock_dict = TencentStockAPI().get_stock_price(stock_code)
-            if not stock_dict:
-                error_msg = f"未找到股票代码 '{stock_code}' 对应的股票名称"
-                self._send_error_response(wxauto_client, chat_name, error_msg)
-                return True
-            
-            stock_name = stock_dict.get("name")
+            if chat_type == "group":
+                if not "@呼噜一号" in text_content:
+                    logger.info(f"text message from {chat_name}, not @bot skipping")
+                    return False
+                #去掉 @呼噜一号，再去除头尾的空格
+                text_content = text_content.replace("@呼噜一号", "")
+                text_content = text_content.replace(" ", "")
 
+
+            # 检查text_content是否为6位数字
+            if re.match(r'^\d{6}$', str(text_content)):
+                stock_code = text_content
+            
+                # 获取股票名称
+                stock_dict = TencentStockAPI().get_stock_price(stock_code)
+                if not stock_dict:
+                    error_msg = f"未找到股票代码 '{stock_code}' 对应的股票名称"
+                    self._send_error_response(wxauto_client, chat_name, error_msg)
+                    return True
+                
+                stock_name = stock_dict.get("name")
+            else:
+                stock_code = TencentStockAPI().get_stock_code(text_content)
+                if not stock_code:
+                    error_msg = f"未找到股票名称 '{stock_code}' 对应的股票代码"
+                    self._send_error_response(wxauto_client, chat_name, error_msg)
+                    return False
+                stock_name = text_content
+            
             # 确定预测日期
             predict_date = self._get_predict_date()
             
