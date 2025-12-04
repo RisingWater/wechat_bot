@@ -7,11 +7,13 @@ import re
 import tempfile
 from datetime import datetime, timedelta
 from webapi.tencent_stock import TencentStockAPI
+from webapi.deepseek import DeepSeekAPI
 
 logger = logging.getLogger(__name__)
 
 class StockProcessor:
     def __init__(self, env_file=".env"):
+        self._deepseek = DeepSeekAPI(env_file)
         self.processor_name = "urlsave_processor"
         logger.info(f"UrlSaveProcessor initialized")
     
@@ -37,6 +39,26 @@ class StockProcessor:
             predict_date = now.strftime("%Y-%m-%d")
         
         return predict_date
+    
+    def _send_explain(self, wxauto_client, chat_name, stock_name, predict_date, predictions):
+        try:
+            prompt = f"你是一个精通中国传统文化、易经八卦、阴阳五行理论的股票分析师，擅长将现代金融市场数据与古典玄学相结合，提供独特的分析。"
+            prompt += f"现在要求解释股票{stock_name}，预测{predict_date}的k线为{predictions}"
+            prompt += f"以股票名称的五行属性，结合预测日期进行解释，以一个算命师的口吻来解释预测结果，不超过100字，结果中必须要带有股票名称。不要输出其它额外的内容。"
+
+            response = self._deepseek.ask_question(prompt)
+            
+            if response:
+                response = response.strip()
+                logger.info(f"DeepSeek explain: '{response}'")
+                wxauto_client.send_text_message(who=chat_name, msg=response)
+            else:
+                logger.error("DeepSeek API returned no explain")
+                return
+                
+        except Exception as e:
+            logger.error(f"Error in explain: {str(e)}")
+            return
     
     def process_text(self, text_msg, wxauto_client):
         """
@@ -126,10 +148,15 @@ class StockProcessor:
                 
                 # 处理预测结果
                 chart_image = result.get("chart_image", "")
+
+                predictions = result.get("predictions")
                                 
                 # 如果有图表图片，发送图片
                 if chart_image:
                     self._send_chart_image(wxauto_client, chat_name, chart_image)
+
+                if predictions:
+                    self._send_explain(wxauto_client, chat_name, stock_name, predict_date, predictions)
                 
                 return True
                 
