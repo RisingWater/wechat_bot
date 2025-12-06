@@ -21,10 +21,8 @@ class ConfigManager:
         self._init_dsm_log_table()
 
     def _init_kv_table(self):
-        self._db.conn.execute("DROP TABLE IF EXISTS kv")
         self._db.create_table("kv", {
             "id": "TEXT PRIMARY KEY",
-            "key": "TEXT PRIMARY KEY",
             "value": "TEXT",
         })
 
@@ -320,7 +318,7 @@ class ConfigManager:
         """
         设置配置项的值
         """
-        self._db.update("kv", key, {"key": key, "value": value})
+        self._db.update("kv", key, {"value": value})
 
 if __name__ == "__main__":
     # Configure logging
