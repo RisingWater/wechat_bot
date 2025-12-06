@@ -19,6 +19,12 @@ class ConfigManager:
         self._init_reminders_table()
         self._init_dsm_log_table()
 
+    def _init_kv_table(self):
+        self._db.create_table("kv", {
+            "key": "TEXT PRIMARY KEY",
+            "value": "TEXT",
+        })
+
     def _init_dsm_log_table(self):
         self._db.create_table("dsm_log", {
             "id": "INTEGER PRIMARY KEY AUTOINCREMENT",  # 自增主键
@@ -294,6 +300,24 @@ class ConfigManager:
             logger.error(f"删除DSM日志记录失败: {str(e)}")
             return False, f"删除失败: {str(e)}"
 
+    def get_value(self, key: str) -> str:
+        """
+        获取配置项的值
+        """
+        param = QueryParams(
+            filters={"key": key},
+        )
+        result = self._db.query("kv", param)
+        if result.total == 0:
+            return ""
+        else:
+            return result.data[0]["value"]
+        
+    def put_value(self, key: str, value: str):
+        """
+        设置配置项的值
+        """
+        self._db.update("kv", key, {"value": value})
 
 if __name__ == "__main__":
     # Configure logging

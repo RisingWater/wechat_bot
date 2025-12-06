@@ -10,6 +10,7 @@ import time
 from utils.file_converter import FileConverter
 from utils.file_recognize import FileRecognizer
 from utils.image_binarize import ImageBinarrize
+from config import ConfigManager
 from device.print import Printer
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,9 @@ class PrintProcessor:
         self._converter = FileConverter()
         self._printer = Printer(env_file)
         self._file_recognize = FileRecognizer()
+        self._photograph_print = False
+        self._config_manager = ConfigManager(env_file)
+        self._load_config()
         self.processor_name = "print_processor"
         logger.info(f"PrintProcessor initialized")
     
@@ -27,7 +31,48 @@ class PrintProcessor:
     
     def priority(self) -> int:
         return 10
+    
+    def _save_config(self):
+        self._config_manager.put_value("photograph_print", str(self._photograph_print))
 
+    def _load_config(self):
+        self._photograph_print = self._config_manager.get_value("photograph_print") == "True"
+
+    def process_text(self, text_msg, wxauto_client):
+        """
+        处理文本消息 - 实现BaseProcessor接口
+        
+        Args:
+            text_msg (dict): 文本消息数据
+            wxauto_client: wxauto客户端实例
+            
+        Returns:
+            bool: 处理成功返回True，失败返回False
+        """
+        chat_name = text_msg.get("chat_name")
+        text_content = text_msg.get("text_content")
+        chat_type = text_msg.get("chat_type")
+            
+        if chat_type == "group":
+            if not "@呼噜一号" in text_content:
+                logger.info(f"text message from {chat_name}, not @bot skipping")
+                return False
+        
+        #去掉 @呼噜一号，再去除头尾的空格
+        text_content = text_content.replace("@呼噜一号", "")
+        text_content = text_content.strip()
+
+        if text_content == "开启照片打印功能":
+            self._photograph_print = True
+            self._save_config()
+            wxauto_client.send_text_message(who=chat_name, msg=f"照片打印功能已开启")
+        elif text_content == "关闭照片打印功能":
+            self._photograph_print = False
+            self._save_config()
+            wxauto_client.send_text_message(who=chat_name, msg=f"照片打印功能已关闭")
+        elif text_content == "显示配置":
+            wxauto_client.send_text_message(who=chat_name, msg=f"当前打印功能状态: {self._photograph_print}")
+        
     def process_image(self, image_msg, wxauto_client):
         """
         处理图片消息 - 实现BaseProcessor接口
@@ -58,8 +103,11 @@ class PrintProcessor:
             
             logger.info(f"PrintProcessor processing image from {chat_name}: {file_path}")
 
-            image_binarize = ImageBinarrize()
-            image_binarize.process_image(input_path=file_path, output_path=binarize_file_path)
+            if self._photograph_print:
+                image_binarize = ImageBinarrize()
+                image_binarize.process_image(input_path=file_path, output_path=binarize_file_path)
+            else:
+                shutil.copy(file_path, binarize_file_path)
 
             logger.info(f"PrintProcessor processing image binarize {chat_name}: {binarize_file_path}")
 
