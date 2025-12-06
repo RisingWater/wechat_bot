@@ -22,6 +22,7 @@ class ConfigManager:
 
     def _init_kv_table(self):
         self._db.create_table("kv", {
+            "id": "TEXT PRIMARY KEY",
             "key": "TEXT PRIMARY KEY",
             "value": "TEXT",
         })
@@ -306,7 +307,7 @@ class ConfigManager:
         获取配置项的值
         """
         param = QueryParams(
-            filters={"key": key},
+            filters={"id": key},
         )
         result = self._db.query("kv", param)
         if result.total == 0:
@@ -318,7 +319,7 @@ class ConfigManager:
         """
         设置配置项的值
         """
-        self._db.update("kv", key, {"value": value})
+        self._db.update("kv", key, {"key": key, "value": value})
 
 if __name__ == "__main__":
     # Configure logging
