@@ -33,10 +33,10 @@ class PrintProcessor:
         return 10
     
     def _save_config(self):
-        self._config_manager.put_value("photograph_print", str(self._photograph_print))
+        self._config_manager.put_value("printer_processor.photograph_print", str(self._photograph_print))
 
     def _load_config(self):
-        self._photograph_print = self._config_manager.get_value("photograph_print") == "True"
+        self._photograph_print = self._config_manager.get_value("printer_processor.photograph_print") == "True"
 
     def process_text(self, text_msg, wxauto_client):
         """

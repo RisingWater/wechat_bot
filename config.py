@@ -14,6 +14,7 @@ class ConfigManager:
         logger.info("ConfigManager initialized")
 
     def init_table(self):
+        self._init_kv_table()
         self._init_processsors_table()
         self._init_chatname_processors_table()
         self._init_reminders_table()
