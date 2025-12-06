@@ -21,7 +21,7 @@ class ConfigManager:
         self._init_dsm_log_table()
 
     def _init_kv_table(self):
-        self._db.execute("DROP TABLE IF EXISTS kv")
+        self._db.conn.execute("DROP TABLE IF EXISTS kv")
         self._db.create_table("kv", {
             "id": "TEXT PRIMARY KEY",
             "key": "TEXT PRIMARY KEY",
