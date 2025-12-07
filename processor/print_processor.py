@@ -66,12 +66,17 @@ class PrintProcessor:
             self._photograph_print = True
             self._save_config()
             wxauto_client.send_text_message(who=chat_name, msg=f"照片打印功能已开启")
+            return True
         elif text_content == "关闭照片打印功能":
             self._photograph_print = False
             self._save_config()
             wxauto_client.send_text_message(who=chat_name, msg=f"照片打印功能已关闭")
+            return True
         elif text_content == "显示配置":
             wxauto_client.send_text_message(who=chat_name, msg=f"当前打印功能状态: {self._photograph_print}")
+            return True
+
+        return False
         
     def process_image(self, image_msg, wxauto_client):
         """
