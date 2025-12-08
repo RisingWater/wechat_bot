@@ -108,10 +108,10 @@ class StockProcessor:
                     return False
                 stock_name = text_content
 
-            wxauto_client.send_text_message(who=chat_name, msg=f"正在预测{stock_name}({stock_code})的股票价格，请稍候...")
-            
             # 确定预测日期
             predict_date = self._get_predict_date()
+
+            wxauto_client.send_text_message(who=chat_name, msg=f"正在预测{stock_name}({stock_code})的股票{predict_date}价格，请稍候...")
             
             # 构建预测请求
             predict_data = {
