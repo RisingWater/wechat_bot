@@ -69,6 +69,7 @@ class ChatProcessor:
         try:
             chat_name = text_msg.get("chat_name")
             text_content = text_msg.get("text_content")
+            chat_type = text_msg.get("chat_type")
 
             if chat_type == "group":
                 if not "@呼噜一号" in text_content:
