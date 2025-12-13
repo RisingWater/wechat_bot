@@ -5,6 +5,7 @@ import base64
 import requests
 import re
 import tempfile
+import random
 from datetime import datetime, timedelta
 from webapi.tencent_stock import TencentStockAPI
 from webapi.deepseek import DeepSeekAPI
@@ -61,6 +62,76 @@ class StockProcessor:
             logger.error(f"Error in explain: {str(e)}")
             return
     
+    def get_internet_slang_msg(stock_name, stock_code, predict_date):
+        messages = [
+            f"等一下，{stock_name}是吧，算一下先",
+            f"{stock_name}，算ing",
+            f"{stock_name}开整，等会儿",
+            f"等等，我掐指一算{stock_name}",
+            f"{stock_name}天机不可泄漏，稍安勿躁",
+            f"正在做法，{stock_name} 请稍等",
+            f"{stock_name}，算好了告诉你",
+            f"这是啥？{stock_name}？，有点意思，我算算",
+            f"{stock_name}？，等等我看看",
+            f"又来？{stock_name}，搞起",
+            f"天有不测风云，人有旦夕祸福{stock_name}，到底如何，让我掐指一算",
+            f"微信真垃圾，发个消息都这么麻烦，{stock_name}，是吧，稍等",
+            f"我靠手机好像卡了，你问{stock_name}对吧，等等我",
+            f"兄弟，别急，{stock_name}，我这就给你算",
+            f"哎呀，{stock_name}，让我先喝口茶，马上给你答案",
+            f"你这问题有点意思，{stock_name}，让我想想",
+            f"{stock_name}？好问题，让我掐指一算",
+            f"算命先生我来了，{stock_name}，等我一会儿",
+            f"先别急，{stock_name}，让我掐指一算",
+            f"{stock_name}？让我先翻翻黄历",
+            f"这个问题有点复杂，{stock_name}，让我想想",
+            f"算命可不是儿戏，{stock_name}，稍等片刻",
+            f"天地玄黄，宇宙洪荒，我给你算一个{stock_name}",
+            f"算命不是预测，{stock_name}，不一定准的",
+            f"微信张小龙大司马命我来算，{stock_name}，稍安勿躁",
+            f"今天天气不错，适合算命，{stock_name}，等我一会儿",
+        ]
+        
+        # 选择一条基础消息
+        base_msg = random.choice(messages)
+        
+        # 微信表情包列表（精选与算命/计算相关的）
+        emojis = [
+            # 思考/等待相关
+            "🤔", "🤨", "🧐", "😏", "😌",
+            # 日常/幽默相关
+            "😅", "😂", "🤣", "😉", "😎", "🤓", "😜", "🤪", "😝", "🤗",
+            # 动作/操作相关
+            "🙏", "🤏", "👌", "🤙", "✌️", "🤞", "👐", "🙌", "👏", "🤲", "🙏",
+        ]
+        
+        # 随机决定是否添加表情（90%的概率添加）
+        if random.random() < 0.5:
+            # 随机选择1-3个表情
+            num_emojis = random.randint(1, 2)
+            selected_emojis = random.sample(emojis, num_emojis)
+            
+            # 随机位置：开头、结尾、中间、或环绕
+            position = random.choices(
+                ["start", "end", "both"],
+                weights=[0.4, 0.4, 0.2],  # 权重调整
+                k=1
+            )[0]
+            
+            if position == "start":
+                # 在开头添加表情
+                return f"{''.join(selected_emojis)} {base_msg}"
+            elif position == "end":
+                # 在结尾添加表情
+                return f"{base_msg} {''.join(selected_emojis)}"
+            elif position == "both":
+                # 在开头和结尾都添加
+                half = len(selected_emojis) // 2
+                return f"{''.join(selected_emojis[:half])} {base_msg} {''.join(selected_emojis[half:])}"
+        
+        # 10%的概率不加表情，保持原样
+        return base_msg
+
     def process_text(self, text_msg, wxauto_client):
         """
         处理文本消息
@@ -111,7 +182,9 @@ class StockProcessor:
             # 确定预测日期
             predict_date = self._get_predict_date()
 
-            wxauto_client.send_text_message(who=chat_name, msg=f"正在预测{stock_name}({stock_code})的股票{predict_date}价格，请稍候...")
+            # 使用示例
+            msg = get_internet_slang_msg(stock_name, stock_code, predict_date)
+            wxauto_client.send_text_message(who=chat_name, msg=msg)
             
             # 构建预测请求
             predict_data = {
