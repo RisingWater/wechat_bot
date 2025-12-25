@@ -62,7 +62,7 @@ class StockProcessor:
             logger.error(f"Error in explain: {str(e)}")
             return
     
-    def get_internet_slang_msg(stock_name, stock_code, predict_date):
+    def _get_internet_slang_msg(self, stock_name, stock_code, predict_date):
         messages = [
             f"等一下，{stock_name}是吧，算一下先",
             f"{stock_name}，算ing",
@@ -105,9 +105,8 @@ class StockProcessor:
             "🙏", "🤏", "👌", "🤙", "✌️", "🤞", "👐", "🙌", "👏", "🤲", "🙏",
         ]
         
-        # 随机决定是否添加表情（90%的概率添加）
+        # 随机决定是否添加表情
         if random.random() < 0.5:
-            # 随机选择1-3个表情
             num_emojis = random.randint(1, 2)
             selected_emojis = random.sample(emojis, num_emojis)
             
@@ -183,7 +182,7 @@ class StockProcessor:
             predict_date = self._get_predict_date()
 
             # 使用示例
-            msg = get_internet_slang_msg(stock_name, stock_code, predict_date)
+            msg = self._get_internet_slang_msg(stock_name, stock_code, predict_date)
             wxauto_client.send_text_message(who=chat_name, msg=msg)
             
             # 构建预测请求
