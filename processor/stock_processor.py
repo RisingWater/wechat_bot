@@ -217,6 +217,7 @@ class StockProcessor:
                 # 检查返回结果
                 if "predictions" not in result or not result["predictions"]:
                     error_msg = "预测API返回数据格式异常"
+                    print(response)
                     self._send_error_response(wxauto_client, chat_name, error_msg)
                     return True
                 
