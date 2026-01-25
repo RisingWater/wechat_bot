@@ -33,12 +33,15 @@ class StockProcessor:
         now = datetime.now()
         current_hour = now.hour
         
-        if 15 <= current_hour <= 24:
-            # 预测明天
-            predict_date = StockTools().get_trading_day(now, delta=1)
+        if (StockTools().is_trading_day(datetime.strptime(now, '%Y-%m-%d'))) :
+            if current_hour >= 9 and current_hour < 17:
+                # 9:00-17:00 预测今天
+                predict_date = StockTools().get_trading_day(now, delta=0)
+            else:
+                # 17:00-24:00 预测明天
+                predict_date = StockTools().get_trading_day(now, delta=1)
         else:
-            # 预测今天
-            predict_date = StockTools().get_trading_day(now, delta=0)
+            predict_date = StockTools().get_trading_day(now, delta=1)
         
         return predict_date
     
