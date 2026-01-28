@@ -69,22 +69,22 @@ class ExamLoop:
                                 else:
                                     logger.info(msg)
 
-                    if notify:
-                        total_score = 0
-                        full_score = 0
-                        msg = f"{exam_name}\n"
-                        for report in report_data:
-                            total_score += report.get("userScore")
-                            full_score += report.get("standardScore")
-                            msg += f"{report.get("subjectName")}: {report.get("userScore")}\n"
-                        msg += f"目前总分：{total_score}"
-                        for route in router_data:
-                            chatname = route.get("chatname")
-                            if chatname:
-                                if self.wxauto_client:
-                                    self.wxauto_client.send_text_message(chatname, msg)
-                                else:
-                                    logger.info(msg)
+                if notify:
+                    total_score = 0
+                    full_score = 0
+                    msg = f"{exam_name}\n"
+                    for report in report_data:
+                        total_score += report.get("userScore")
+                        full_score += report.get("standardScore")
+                        msg += f"{report.get("subjectName")}: {report.get("userScore")}\n"
+                    msg += f"目前总分：{total_score}"
+                    for route in router_data:
+                        chatname = route.get("chatname")
+                        if chatname:
+                            if self.wxauto_client:
+                                self.wxauto_client.send_text_message(chatname, msg)
+                            else:
+                                logger.info(msg)
                        
         except Exception as e:
             logger.error(f"处理提醒时出错: {e}")
