@@ -51,6 +51,8 @@ class ExamLoop:
                 logger.info(f"正在获取考试: {exam_name}")
                 report_data = self._zhixue.get_exam_report(exam_id)
 
+                logging.info(report_data)
+
                 for report in report_data:
                     record = config_manager.get_qbexam(report.get("paperId"))
                     notify = False
@@ -67,6 +69,8 @@ class ExamLoop:
                                     self.wxauto_client.send_text_message(chatname, msg)
                                 else:
                                     logger.info(msg)
+                    else:
+                        logging.info(f"已记录的考试: {report.get('paperName')}")
 
                 if notify:
                     total_score = 0
