@@ -332,6 +332,15 @@ class ConfigManager:
         """
         self._db.update("kv", key, {"value": value})
 
+    def del_qbexam(self, paperId: str) -> Tuple[bool, str]:
+        result = self._db.delete("qb_exam", paperId)
+        if (result):
+            logger.info(f"{paperId} 删除成功")
+            return True, "删除成功"
+        else:
+            logger.info(f"{paperId} 删除失败")
+            return False, "删除失败"
+
     def get_qbexam(self, paperId: str):
         """
         获取配置项的值
