@@ -81,7 +81,6 @@ class ExamLoop:
                         for route in router_data:
                             chatname = route.get("chatname")
                             if chatname:
-                                msg = f"🎉🎉🎉 乔宝 {report.get("paperName")} 成绩出来啦，分数{report.get("userScore")}"
                                 if self.wxauto_client:
                                     self.wxauto_client.send_text_message(chatname, msg)
                                 else:
