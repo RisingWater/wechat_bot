@@ -38,20 +38,19 @@ class ZhixueAPI:
 
     def _get_token(self):
         url = "https://www.zhixue.com/container/app/token/getToken"
-    
-        # 完整的Cookie（直接从你的请求头复制）
+
         cookies = {
             "JSESSIONID": "477F73A7BB4A947FDED54B8E4A74E479",
-            "aliyungf_tc": "339238218f609287e093238c729f6300cc2b93a8ab90cc123f90b71fd454f22e",
-            "tlsysSessionId": "a884bacd-5c18-4965-89e8-8d99abcf9507",
+            "aliyungf_tc": "fb3dc233f43034d19eb04fbb7c4d951ae62d661340a320dcfff5bd7a42e78317",
+            "tlsysSessionId": "b30f8e5c-47fb-412a-893b-481f3ecc38c7",
             "isJump": "true",
-            "deviceId": "89AFABEE-B805-44FA-96BA-7F4196FA5D04",
-            "_bl_uid": "t1mvCk5mx7jct861qvFjpU3d5zbU",
+            "deviceId": "2AA00762-EAA6-49B4-A8B3-78BF6B076E04",
+            "_bl_uid": "23m6XkOX9m4s0v3nF703w8qlpb02",
             "loginUserName": "17139721",
-            "SSO_R_SESSION_ID": "c6bbdac2-d15c-4315-9af3-b7178d3c0d39",
+            "SSO_R_SESSION_ID": "d021438f-89b4-47a8-8251-47dfe9af72cc",
             "ui": "1500000100282078985",
-            "edu_collect_sdk_idxId&devIdBRN44YaIO73": '%7B%22deviceId%22%3A%22900109e4-027a-6e04-97d5-7cbbc490bb98%22%2C%22BRN44YaIO732026-1-28%22%3A14%7D',
-            "JSESSIONID": "7947FF034E7E1539D591DFEC0016C997"
+            "edu_collect_sdk_idxId&devIdBRN44YaIO73": '%7B%22deviceId%22%3A%22240e0a21-65b5-61c3-b5f7-6d4139e26053%22%2C%22BRN44YaIO732026-1-28%22%3A14%7D',
+            "JSESSIONID": "0D85DA009FC453297D785A91CDE5C4B8"
         }
         
         try:
