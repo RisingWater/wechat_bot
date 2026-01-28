@@ -324,7 +324,7 @@ class ConfigManager:
         if result.total == 0:
             return ""
         else:
-            return result.data[0]["value"]
+            return result.items[0]["value"]
         
     def put_value(self, key: str, value: str):
         """
@@ -343,7 +343,7 @@ class ConfigManager:
         if result.total == 0:
             return None
         else:
-            return result.data[0]
+            return result.items
         
     def put_qbexam(self, exam_report) -> Tuple[bool, str]:
         data = {
