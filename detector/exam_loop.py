@@ -11,9 +11,9 @@ router_data = [
     #{
     #    "chatname" : "学霸乔宝专项配套办公室"
     #},
-    {
-        "chatname" : "王旭"
-    },
+    #{
+    #    "chatname" : "王旭"
+    #},
 ]
 
 # 设置日志
@@ -56,8 +56,7 @@ class ExamLoop:
                     notify = False
                     if not record:
                         logger.info(f"发现未记录的考试: {report.get("paperName")}")
-                        if not report.get("examId") == "e7c363de-8d97-4975-9e1c-2b9d871cd90a":
-                            config_manager.put_qbexam(report)
+                        config_manager.put_qbexam(report)
                         notify = True
 
                         for route in router_data:
