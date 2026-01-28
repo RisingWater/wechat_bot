@@ -8,9 +8,9 @@ from config import ConfigManager
 from webapi.zhixue import ZhixueAPI
 
 router_data = [
-    #{
-    #    "chatname" : "学霸乔宝专项配套办公室"
-    #},
+    {
+        "chatname" : "学霸乔宝专项配套办公室"
+    },
     #{
     #    "chatname" : "王旭"
     #},
