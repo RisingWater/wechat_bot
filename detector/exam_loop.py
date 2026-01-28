@@ -32,8 +32,6 @@ class ExamLoop:
     def process_loop(self, config_manager):
         """处理所有提醒"""
         current_time = time.time()
-        config_manager.del_qbexam('dd0d2224-56b3-4f01-aac4-826cc5570f8f')
-        config_manager.del_qbexam('5b84e4d0-e15a-42b3-8604-32e3330f159e')
         time_since_last = current_time - self._last_process_time
         if time_since_last < self._interval:
             return
