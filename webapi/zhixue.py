@@ -55,7 +55,7 @@ class ZhixueAPI:
         }
         
         try:
-            print("正在获取token...")
+            logging.info("正在获取token...")
             
             response = requests.get(
                 url=url,
@@ -69,22 +69,22 @@ class ZhixueAPI:
                     
                     # 检查常见的成功字段
                     if data.get('errorCode') == 0:
-                        logging.info("\n✅ Token获取成功!")
+                        logging.info("✅ Token获取成功!")
                         
                         # 提取token信息
                         result_data = data.get('result')
                         
                         return result_data
                     else:
-                        logging.error(f"\n❌ 获取失败: {data.get('errorInfo', '未知错误')}")
+                        logging.error(f"❌ 获取失败: {data.get('errorInfo', '未知错误')}")
                         return None
                         
                 except json.JSONDecodeError:
-                    logging.error("\n响应不是JSON格式:")
+                    logging.error("响应不是JSON格式:")
                     logging.error(response.text[:500])
                     return None
             else:
-                logging.error(f"\n❌ 请求失败，状态码: {response.status_code}")
+                logging.error(f"❌ 请求失败，状态码: {response.status_code}")
                 logging.error(f"响应内容: {response.text[:500]}")
                 return None
                 
