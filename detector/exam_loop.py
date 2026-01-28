@@ -56,7 +56,8 @@ class ExamLoop:
                     notify = False
                     if not record:
                         logger.info(f"发现未记录的考试: {report.get("paperName")}")
-                        config_manager.put_qbexam(report)
+                        if not report.get("examId") == "e7c363de-8d97-4975-9e1c-2b9d871cd90a":
+                            config_manager.put_qbexam(report)
                         notify = True
 
                         for route in router_data:
