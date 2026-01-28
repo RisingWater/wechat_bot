@@ -4,9 +4,9 @@ import logging
 from datetime import datetime
 from typing import List, Dict, Any
 from config import ConfigManager
-from zhdate import ZhDate
 from detector.reminder_loop import ReminderLoop
 from detector.dsm_loop import DsmLoop
+from detector.exam_loop import ExamLoop
 
 # 设置日志
 logger = logging.getLogger(__name__)
@@ -25,6 +25,9 @@ class DetectorLoop:
 
         self.register_processor("dsm_loop", DsmLoop(self.wxauto_client, env_file))
         logger.info("注册DSM开门记录处理器...")
+
+        self.register_processor("excm_loop", ExamLoop(self.wxauto_client))
+        logger.info("注册考试成绩查询处理器...")
 
     def set_interval(self, name: str, interval: int):
         """设置处理器的运行间隔"""
@@ -84,7 +87,7 @@ if __name__ == "__main__":
     )
     
     try:
-        reminder_loop = DetecorLoop()
+        reminder_loop = DetectorLoop()
         reminder_loop.start_loop(check_interval=60)  # 每分钟检查一次
         
     except KeyboardInterrupt:

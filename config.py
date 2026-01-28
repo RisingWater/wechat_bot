@@ -19,11 +19,22 @@ class ConfigManager:
         self._init_chatname_processors_table()
         self._init_reminders_table()
         self._init_dsm_log_table()
+        self._init_exam_table()
 
     def _init_kv_table(self):
         self._db.create_table("kv", {
             "id": "TEXT PRIMARY KEY",
             "value": "TEXT",
+        })
+
+    def _init_exam_table(self):
+        self._db.create_table("qb_exam", {
+            "id": "TEXT PRIMARY KEY",
+            "examId": "TEXT NOT NULL",
+            "paperName": "TEXT NOT NULL",
+            "subjectName": "TEXT NOT NULL",
+            "userScore" : "REAL",
+            "standardScore" : "REAL",
         })
 
     def _init_dsm_log_table(self):
@@ -196,6 +207,7 @@ class ConfigManager:
         except Exception as e:
             logger.error(f"添加提醒失败: {str(e)}")
             return False, f"添加失败: {str(e)}"
+        
     def update_reminder(self, reminder_id: int, update_data: dict) -> Tuple[bool, str]:
         """
         更新提醒
@@ -319,6 +331,44 @@ class ConfigManager:
         设置配置项的值
         """
         self._db.update("kv", key, {"value": value})
+
+    def get_qbexam(self, paperId: str):
+        """
+        获取配置项的值
+        """
+        param = QueryParams(
+            filters={"id": paperId},
+        )
+        result = self._db.query("qb_exam", param)
+        if result.total == 0:
+            return None
+        else:
+            return result.data[0]
+        
+    def put_qbexam(self, exam_report) -> Tuple[bool, str]:
+        data = {
+            "id" : str(exam_report["paperId"]),
+            'examId' : str(exam_report['examId']),
+            "paperName" : str(exam_report['paperName']),
+            "subjectName" : str(exam_report['subjectName']),
+            "userScore" : float(exam_report['userScore']),
+            "standardScore" : float(exam_report['standardScore']),
+        }
+
+        param = QueryParams(
+            filters={"id": str(exam_report["paperId"])},
+        )
+
+        result = self._db.query("qb_exam", param)
+        if result.total > 0:
+            logger.info(f"考试 {exam_report["paperId"]} 已经存在, 更新")
+            self._db.update("qb_exam", str(exam_report["paperId"]), data)
+        else:
+            logger.info(f"考试 {exam_report["paperId"]} 不存在, 新增")
+            self._db.insert("qb_exam", data)
+
+        return True, "操作成功"
+
 
 if __name__ == "__main__":
     # Configure logging
