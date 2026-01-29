@@ -39,18 +39,20 @@ class ZhixueAPI:
     def _get_token(self):
         url = "https://www.zhixue.com/container/app/token/getToken"
 
+#loginName=%E7%8E%8B%E7%85%9C%E4%B9%94; avatar=https%3A%2F%2Fdownload.cycore.cn%2Fedc%2Fopenapi%2Favatar_default_student_200_m_3.png%3Fdefault; 
+
         cookies = {
-            "JSESSIONID": "477F73A7BB4A947FDED54B8E4A74E479",
-            "aliyungf_tc": "fb3dc233f43034d19eb04fbb7c4d951ae62d661340a320dcfff5bd7a42e78317",
-            "tlsysSessionId": "b30f8e5c-47fb-412a-893b-481f3ecc38c7",
+            "JSESSIONID": "F461574AD8B8875449C7EA72BC651D84",
+            "aliyungf_tc": "b327c06c7fafe654875d17542f47be762c09b024ea53063377d4f192e143f040",
+            "tlsysSessionId": "660674d5-4f41-44c9-b1fb-fc4af4287bf4",
             "isJump": "true",
             "deviceId": "2AA00762-EAA6-49B4-A8B3-78BF6B076E04",
             "_bl_uid": "23m6XkOX9m4s0v3nF703w8qlpb02",
             "loginUserName": "17139721",
-            "SSO_R_SESSION_ID": "d021438f-89b4-47a8-8251-47dfe9af72cc",
+            "SSO_R_SESSION_ID": "320798b6-a2f9-4aa3-b57b-55be9a676c81",
             "ui": "1500000100282078985",
             "edu_collect_sdk_idxId&devIdBRN44YaIO73": '%7B%22deviceId%22%3A%22240e0a21-65b5-61c3-b5f7-6d4139e26053%22%2C%22BRN44YaIO732026-1-28%22%3A14%7D',
-            "JSESSIONID": "0D85DA009FC453297D785A91CDE5C4B8"
+            "JSESSIONID": "F57D45175550A092D16F8293227B35B6"
         }
         
         try:
