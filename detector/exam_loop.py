@@ -24,7 +24,6 @@ class ExamLoop:
         self._env_file = env_file
         self._running = False
         self.wxauto_client = wxauto_client
-        self._zhixue = ZhixueAPI()
         self._last_process_time = time.time()
         self._interval = 300
         self._restore_timer = None
@@ -42,14 +41,15 @@ class ExamLoop:
         logger.info("开始处理exam_loop 任务")
 
         try:
-            exam_list = self._zhixue.get_exam_list()
+            zhixue = ZhixueAPI()
+            exam_list = zhixue.get_exam_list()
             
             for exam in exam_list:
                 exam_id = exam.get('examId')
                 exam_name = exam.get('examName')
             
                 logger.info(f"正在获取考试: {exam_name}")
-                report_data = self._zhixue.get_exam_report(exam_id)
+                report_data = zhixue.get_exam_report(exam_id)
 
                 for report in report_data:
                     record = config_manager.get_qbexam(report.get("paperId"))
