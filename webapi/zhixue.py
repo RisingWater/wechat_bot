@@ -1,4 +1,5 @@
 import requests
+import re
 import logging
 import json
 from datetime import datetime, timedelta
@@ -39,22 +40,10 @@ class ZhixueAPI:
     def _get_token(self):
         url = "https://www.zhixue.com/container/app/token/getToken"
 
-#loginName=%E7%8E%8B%E7%85%9C%E4%B9%94; avatar=https%3A%2F%2Fdownload.cycore.cn%2Fedc%2Fopenapi%2Favatar_default_student_200_m_3.png%3Fdefault; 
-
         cookies = {
-            "JSESSIONID": "F461574AD8B8875449C7EA72BC651D84",
-            "aliyungf_tc": "b327c06c7fafe654875d17542f47be762c09b024ea53063377d4f192e143f040",
-            "tlsysSessionId": "660674d5-4f41-44c9-b1fb-fc4af4287bf4",
-            "isJump": "true",
-            "deviceId": "2AA00762-EAA6-49B4-A8B3-78BF6B076E04",
-            "_bl_uid": "23m6XkOX9m4s0v3nF703w8qlpb02",
-            "loginUserName": "17139721",
-            "SSO_R_SESSION_ID": "320798b6-a2f9-4aa3-b57b-55be9a676c81",
-            "ui": "1500000100282078985",
-            "edu_collect_sdk_idxId&devIdBRN44YaIO73": '%7B%22deviceId%22%3A%22240e0a21-65b5-61c3-b5f7-6d4139e26053%22%2C%22BRN44YaIO732026-1-28%22%3A14%7D',
-            "JSESSIONID": "F57D45175550A092D16F8293227B35B6"
+            "tlsysSessionId": 'df5201d2-83cd-44d9-93d0-aac2b3b24db9',
         }
-        
+       
         try:
             logging.info("正在获取token...")
             
@@ -74,7 +63,7 @@ class ZhixueAPI:
                         
                         # 提取token信息
                         result_data = data.get('result')
-                        
+                        logger.info(f"token: {result_data}")
                         return result_data
                     else:
                         logging.error(f"❌ 获取失败: {data.get('errorInfo', '未知错误')}")
