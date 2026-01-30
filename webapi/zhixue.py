@@ -41,7 +41,7 @@ class ZhixueAPI:
         url = "https://www.zhixue.com/container/app/token/getToken"
 
         cookies = {
-            "tlsysSessionId": 'df5201d2-83cd-44d9-93d0-aac2b3b24db9',
+            "tlsysSessionId": '6291ff65-2940-487b-ba66-6e413ac20665',
         }
        
         try:
