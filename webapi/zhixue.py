@@ -70,7 +70,7 @@ class ZhixueAPI:
             response = requests.post(url, headers=headers, data=data)
             
             # 输出响应信息
-            print(f"状态码: {response.status_code}")
+            logging.info(f"状态码: {response.status_code}")
             response_json = response.json()
 
             if response_json.get("code") == "success" :
@@ -80,7 +80,7 @@ class ZhixueAPI:
                 return None
                 
         except requests.exceptions.RequestException as e:
-            print(f"请求出错: {e}")
+            logging.error(f"请求出错: {e}")
             return None
 
     def _get_token(self):
@@ -127,13 +127,7 @@ class ZhixueAPI:
             response = requests.post(url, headers=headers, data=data)
             
             # 输出响应信息
-            print(f"状态码: {response.status_code}")
-            print("响应头:")
-            for key, value in response.headers.items():
-                if key.lower() in ['set-cookie', 'content-type']:
-                    print(f"  {key}: {value}")
-            
-            print("\n响应内容:")
+            logging.info(f"状态码: {response.status_code}")
             
             if response.status_code == 200:
                 try:
@@ -141,29 +135,29 @@ class ZhixueAPI:
                     
                     # 检查是否成功
                     if result.get("success") and result.get("errorCode") == 0:
-                        print("登录成功!")
+                        logging.info("登录成功!")
                         # 提取重要信息
                         user_info = result.get("result", {}).get("userInfo", {})
                         token = result.get("result", {}).get("token", "")
                         
-                        print(f"用户姓名: {user_info.get('name')}")
-                        print(f"用户ID: {user_info.get('id')}")
-                        print(f"班级: {result.get('result', {}).get('clazzInfo', {}).get('name')}")
-                        print(f"学校: {user_info.get('school', {}).get('schoolName')}")
-                        print(f"Token: {token[:50]}...")  # 只显示前50个字符
+                        logging.info(f"用户姓名: {user_info.get('name')}")
+                        logging.info(f"用户ID: {user_info.get('id')}")
+                        logging.info(f"班级: {result.get('result', {}).get('clazzInfo', {}).get('name')}")
+                        logging.info(f"学校: {user_info.get('school', {}).get('schoolName')}")
+                        logging.info(f"Token: {token[:50]}...")  # 只显示前50个字符
                         
                         return token
                     else:
-                        print(f"登录失败: {result.get('errorInfo')}")
+                        logging.error(f"登录失败: {result.get('errorInfo')}")
                 except json.JSONDecodeError:
-                    print("响应不是有效的JSON格式")
-                    print(response.text)
+                    logging.error("响应不是有效的JSON格式")
+                    logging.error(response.text)
             else:
-                print(f"HTTP请求失败: {response.status_code}")
-                print(response.text)
+                logging.error(f"HTTP请求失败: {response.status_code}")
+                logging.error(response.text)
                 
         except requests.exceptions.RequestException as e:
-            print(f"请求出错: {e}")
+            logging.error(f"请求出错: {e}")
             return None
         
     def get_exam_list(self):
