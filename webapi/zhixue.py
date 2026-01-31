@@ -1,5 +1,5 @@
 import requests
-import re
+import time
 import logging
 import json
 from datetime import datetime, timedelta
@@ -9,8 +9,11 @@ logger = logging.getLogger(__name__)
 class ZhixueAPI:
     def __init__(self):
         self._base_url = "https://ali-bg.zhixue.com"
-        self._token = self._get_token()
 
+        self._deviceId = "e640163b58dd034bd6872f7df7d60175"
+        self._tgt = "TGT-144825-mw0IcWffVT2utvm9YtMkgsaEWtHHzCAACbHwXgk04bfS1ObvHe-open.changyan.com"
+
+        self._token = self._get_token()
         curyear = datetime.now()
         current_year = curyear.year
         current_month = curyear.month
@@ -37,51 +40,147 @@ class ZhixueAPI:
         self._startSchoolYear = start_timestamp
         self._endSchoolYear = end_timestamp
 
-    def _get_token(self):
-        url = "https://www.zhixue.com/container/app/token/getToken"
 
-        cookies = {
-            "tlsysSessionId": '6291ff65-2940-487b-ba66-6e413ac20665',
+    def _get_at_token(self):
+        # 请求URL
+        url = "https://open.changyan.com/sso/v1/api"
+
+        # 请求头
+        headers = {
+            "User-Agent": "zhixue_student/1.0.2047 (iPhone; iOS 26.2.1; Scale/3.00)",
         }
-       
+
+        # 请求体参数（URL编码格式）
+        data = {
+            "appId": "zhixue_student",
+            "client": "ios",
+            "deviceId": self._deviceId,
+            "deviceName": "iPhone18,3",
+            "extInfo": f'{{"deviceId":"{self._deviceId}"}}',
+            "method": "sso.extend.tgt",
+            "ncetAppId": "SDZSH23Z6LPnq8iCweQrUo5ACJXtKCvG",
+            "networkState": "wifi",
+            "osType": "ios",
+            "tgt": self._tgt,
+            "userProxy": "true"
+        }
+
+        # 发送POST请求
         try:
-            logging.info("正在获取token...")
+            response = requests.post(url, headers=headers, data=data)
             
-            response = requests.get(
-                url=url,
-                cookies=cookies,
-                timeout=10
-            )
+            # 输出响应信息
+            print(f"状态码: {response.status_code}")
+            response_json = response.json()
+
+            if response_json.get("code") == "success" :
+                return response_json.get("data")
+            else:
+                logging.error(f"获取AT失败: {response_json.get('message')}")
+                return None
+                
+        except requests.exceptions.RequestException as e:
+            print(f"请求出错: {e}")
+            return None
+
+    def _get_token(self):
+        """
+        智学网CAS登录函数
+        """
+
+        at_response = self._get_at_token()
+        if at_response is None:
+            logging.error("获取AT失败，请检查网络或重新运行程序")
+            return None
+        
+        at_token = at_response.get("at")
+        user_id = at_response.get("userId")
+        
+        url = "https://www.zhixue.com/container/app/login/casLogin"
+        
+        # 生成时间戳
+        timestamp = str(int(time.time() * 1000))
+        
+        # 这里需要根据实际情况生成authtoken和authguid
+        # 注意：这两个参数是认证参数，实际使用时需要正确的生成算法
+        authtoken = "5e1f18032941d08c7b729582bd570ea4"  # 示例值
+        authguid = "67345f2434ce60c86d1afb687772f8e2"  # 示例值
+        
+        headers = {
+            "Host": "www.zhixue.com",
+            "sucOriginAppKey": "zhixue_student",
+            "User-Agent": "zhixue_student/1.0.2047 (iPhone; iOS 26.2.1; Scale/3.00)",
+            "deviceType": "iPhone18,3",
+            "deviceName": "iPhone",
+            "browserVersion": "iOS_1.0.2047",
+            "authbizcode": "0001",
+            "authtimestamp": timestamp,
+            "deviceId": self._deviceId,
+            "appName": "com.zhixue.student",
+            "Connection": "keep-alive",
+            "Accept-Language": "zh-Hans-CN;q=1",
+            "Accept": "*/*",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "authtoken": authtoken,
+            "sucAccessDeviceId": self._deviceId,
+            "Accept-Encoding": "gzip, deflate, br",
+            "authguid": authguid,
+            # Cookie可以根据需要添加
+            # "Cookie": "JSESSIONID=130138D27E29C1130CF3CCFAACB035B5; aliyungf_tc=a71b6f1d16a531f3fcaf316d8e1c99dd197bb8f39444347295830dc0e0b994e1; tlsysSessionId=6159413b-ec47-4e3a-adea-ee33dc88cc79"
+        }
+        
+        # 请求体参数
+        data = {
+            "appId": "zhixue_student",
+            "at": at_token,
+            "ncetAppId": "SDZSH23Z6LPnq8iCweQrUo5ACJXtKCvG",
+            "tokenTimeout": "0",
+            "userId": user_id
+        }
+        
+        try:
+            response = requests.post(url, headers=headers, data=data)
+            
+            # 输出响应信息
+            print(f"状态码: {response.status_code}")
+            print("响应头:")
+            for key, value in response.headers.items():
+                if key.lower() in ['set-cookie', 'content-type']:
+                    print(f"  {key}: {value}")
+            
+            print("\n响应内容:")
             
             if response.status_code == 200:
                 try:
-                    data = response.json()
+                    result = response.json()
                     
-                    # 检查常见的成功字段
-                    if data.get('errorCode') == 0:
-                        logging.info("✅ Token获取成功!")
+                    # 检查是否成功
+                    if result.get("success") and result.get("errorCode") == 0:
+                        print("登录成功!")
+                        # 提取重要信息
+                        user_info = result.get("result", {}).get("userInfo", {})
+                        token = result.get("result", {}).get("token", "")
                         
-                        # 提取token信息
-                        result_data = data.get('result')
-                        logger.info(f"token: {result_data}")
-                        return result_data
+                        print(f"用户姓名: {user_info.get('name')}")
+                        print(f"用户ID: {user_info.get('id')}")
+                        print(f"班级: {result.get('result', {}).get('clazzInfo', {}).get('name')}")
+                        print(f"学校: {user_info.get('school', {}).get('schoolName')}")
+                        print(f"Token: {token[:50]}...")  # 只显示前50个字符
+                        
+                        return token
                     else:
-                        logging.error(f"❌ 获取失败: {data.get('errorInfo', '未知错误')}")
-                        return None
-                        
+                        print(f"登录失败: {result.get('errorInfo')}")
                 except json.JSONDecodeError:
-                    logging.error("响应不是JSON格式:")
-                    logging.error(response.text[:500])
-                    return None
+                    print("响应不是有效的JSON格式")
+                    print(response.text)
             else:
-                logging.error(f"❌ 请求失败，状态码: {response.status_code}")
-                logging.error(f"响应内容: {response.text[:500]}")
-                return None
+                print(f"HTTP请求失败: {response.status_code}")
+                print(response.text)
                 
-        except Exception as e:
-            logging.error(f"❌ 发生错误: {e}")
+        except requests.exceptions.RequestException as e:
+            print(f"请求出错: {e}")
             return None
-
+        
     def get_exam_list(self):
         url = f"{self._base_url}/zhixuebao/report/exam/getUserExamList"
         
