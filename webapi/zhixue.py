@@ -101,10 +101,6 @@ class ZhixueAPI:
         # 生成时间戳
         timestamp = str(int(time.time() * 1000))
         
-        # 这里需要根据实际情况生成authtoken和authguid
-        # 注意：这两个参数是认证参数，实际使用时需要正确的生成算法
-        authtoken = "5e1f18032941d08c7b729582bd570ea4"  # 示例值
-        authguid = "67345f2434ce60c86d1afb687772f8e2"  # 示例值
         
         headers = {
             "Host": "www.zhixue.com",
@@ -113,20 +109,9 @@ class ZhixueAPI:
             "deviceType": "iPhone18,3",
             "deviceName": "iPhone",
             "browserVersion": "iOS_1.0.2047",
-            "authbizcode": "0001",
-            "authtimestamp": timestamp,
             "deviceId": self._deviceId,
             "appName": "com.zhixue.student",
-            "Connection": "keep-alive",
-            "Accept-Language": "zh-Hans-CN;q=1",
-            "Accept": "*/*",
-            "Content-Type": "application/x-www-form-urlencoded",
-            "authtoken": authtoken,
             "sucAccessDeviceId": self._deviceId,
-            "Accept-Encoding": "gzip, deflate, br",
-            "authguid": authguid,
-            # Cookie可以根据需要添加
-            # "Cookie": "JSESSIONID=130138D27E29C1130CF3CCFAACB035B5; aliyungf_tc=a71b6f1d16a531f3fcaf316d8e1c99dd197bb8f39444347295830dc0e0b994e1; tlsysSessionId=6159413b-ec47-4e3a-adea-ee33dc88cc79"
         }
         
         # 请求体参数
