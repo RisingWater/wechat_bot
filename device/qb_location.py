@@ -287,6 +287,37 @@ class QBLocation:
             logger.error(f"获取地址发生未知错误: {e}")
             return None
 
+    def get_power(self):
+        powers = []
+        token = self._login()
+        if token:
+            logger.info(f"获取到的token: {token}")
+            device_list = self._get_device_list(size=100, current=1)
+            if device_list and "records" in device_list:
+                records = device_list["records"]
+                if records:
+                    logger.info(f"共有 {len(records)} 个设备")
+
+                # 遍历每个设备
+                for device in records:
+                    device_id = device["id"]
+                    device_name = device["name"]
+                    latitude = device["latitude"]
+                    longitude = device["longitude"]
+                    info_type = device["infoType"]
+                    power = device["power"]
+                    
+                    logger.info(f"\n处理设备: {device_name} (ID: {device_id})")
+                    logger.info(f"位置: 经度 {longitude}, 纬度 {latitude}")
+                    logger.info(f"当前电量: {power}%")
+                    powers.append({
+                        "power": power
+                    })
+                # 使用完毕后关闭会话
+        self._session.close()
+
+        return powers
+
     def get_location(self):
         location = []
         token = self._login()
@@ -305,9 +336,11 @@ class QBLocation:
                     latitude = device["latitude"]
                     longitude = device["longitude"]
                     info_type = device["infoType"]
+                    power = device["power"]
                     
                     logger.info(f"\n处理设备: {device_name} (ID: {device_id})")
                     logger.info(f"位置: 经度 {longitude}, 纬度 {latitude}")
+                    logger.info(f"当前电量: {power}%")
                     
                     # 获取设备详细信息以获取modelId
                     device_info_list = self._get_curr_point_info_all([device_id])
