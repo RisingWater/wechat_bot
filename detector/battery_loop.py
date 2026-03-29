@@ -21,7 +21,7 @@ class BatteryLoop:
         self._env_file = env_file
         self._running = False
         self.wxauto_client = wxauto_client
-        self._last_process_time = time.time()
+        self._last_process_time = None
         self._interval = 86400  # 默认每天检查一次（24小时）
         self._check_time = dt_time(20, 30)  # 每天20:30检查
         self._last_notified_devices = {}  # 记录上次通知的设备电量状态
@@ -30,20 +30,24 @@ class BatteryLoop:
     def process_loop(self, config_manager):
         """处理电量检测"""
         current_time = time.time()
-        time_since_last = current_time - self._last_process_time
         
         # 检查是否到了每天的检查时间
         now = datetime.now()
         should_check = False
         
-        # 如果距离上次检查超过24小时，或者现在是20:30之后且今天还没检查过
-        if time_since_last >= self._interval:
-            should_check = True
-        elif now.time() >= self._check_time:
-            # 检查今天是否已经检查过
-            last_check_date = datetime.fromtimestamp(self._last_process_time).date()
-            if last_check_date < now.date():
+        if self._last_process_time is None:
+            if now.time() >= self._check_time:
+                should_check = True  # 今天已过20:30，立即检查
+        else:
+            time_since_last = current_time - self._last_process_time
+            # 如果距离上次检查超过24小时，或者现在是20:30之后且今天还没检查过
+            if time_since_last >= self._interval:
                 should_check = True
+            elif now.time() >= self._check_time:
+                # 检查今天是否已经检查过
+                last_check_date = datetime.fromtimestamp(self._last_process_time).date()
+                if last_check_date < now.date():
+                    should_check = True
         
         if not should_check:
             return
