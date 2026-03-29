@@ -288,7 +288,12 @@ class QBLocation:
             return None
 
     def get_power(self):
-        powers = []
+        """获取所有设备的电量信息
+        
+        Returns:
+            list: 设备信息列表，每个元素包含 device_id, device_name, power
+        """
+        devices = []
         token = self._login()
         if token:
             logger.info(f"获取到的token: {token}")
@@ -310,13 +315,18 @@ class QBLocation:
                     logger.info(f"\n处理设备: {device_name} (ID: {device_id})")
                     logger.info(f"位置: 经度 {longitude}, 纬度 {latitude}")
                     logger.info(f"当前电量: {power}%")
-                    powers.append({
-                        "power": power
+                    devices.append({
+                        "device_id": device_id,
+                        "device_name": device_name,
+                        "power": power,
+                        "latitude": latitude,
+                        "longitude": longitude,
+                        "info_type": info_type
                     })
                 # 使用完毕后关闭会话
         self._session.close()
 
-        return powers
+        return devices
 
     def get_location(self):
         location = []

@@ -2,18 +2,10 @@ import time
 import json
 import logging
 import threading
-from datetime import datetime
+from datetime import datetime, time as dt_time
 from typing import List, Dict, Any
 from config import ConfigManager
-# 直接导入 QBLocation 避免平台依赖问题
-try:
-    from device.qb_location import QBLocation
-except ImportError as e:
-    # 如果导入失败，尝试直接导入模块
-    import sys
-    import os
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from device.qb_location import QBLocation
+from device.qb_location import QBLocation
 
 router_data = [
     {
@@ -30,8 +22,8 @@ class BatteryLoop:
         self._running = False
         self.wxauto_client = wxauto_client
         self._last_process_time = time.time()
-        self._interval = 3600  # 默认每小时检查一次
-        self._restore_timer = None
+        self._interval = 86400  # 默认每天检查一次（24小时）
+        self._check_time = dt_time(20, 30)  # 每天20:30检查
         self._last_notified_devices = {}  # 记录上次通知的设备电量状态
         self._low_battery_threshold = 30  # 低电量阈值30%
     
@@ -39,48 +31,50 @@ class BatteryLoop:
         """处理电量检测"""
         current_time = time.time()
         time_since_last = current_time - self._last_process_time
-        if time_since_last < self._interval:
+        
+        # 检查是否到了每天的检查时间
+        now = datetime.now()
+        should_check = False
+        
+        # 如果距离上次检查超过24小时，或者现在是20:30之后且今天还没检查过
+        if time_since_last >= self._interval:
+            should_check = True
+        elif now.time() >= self._check_time:
+            # 检查今天是否已经检查过
+            last_check_date = datetime.fromtimestamp(self._last_process_time).date()
+            if last_check_date < now.date():
+                should_check = True
+        
+        if not should_check:
             return
         
         # 更新上次执行时间
         self._last_process_time = current_time
 
-        logger.info("开始处理battery_loop 任务")
+        logger.info(f"开始处理battery_loop任务，检查时间: {now.strftime('%Y-%m-%d %H:%M:%S')}")
 
         try:
-            # 创建QBLocation实例
+            # 创建QBLocation实例获取设备电量信息
             qb_location = QBLocation(self._env_file)
+            devices = qb_location.get_power()
             
-            # 登录获取token
-            token = qb_location._login()
-            if not token:
-                logger.error("登录失败，无法获取设备信息")
+            if not devices:
+                logger.warning("未能获取到设备电量信息")
                 return
             
-            # 直接获取设备列表
-            device_list = qb_location._get_device_list(size=100, current=1)
-            if not device_list or "records" not in device_list:
-                logger.warning("未能获取到设备列表信息")
-                return
-            
-            records = device_list["records"]
-            if not records:
-                logger.info("没有找到任何设备")
-                return
-            
-            logger.info(f"获取到 {len(records)} 个设备的信息")
+            logger.info(f"获取到 {len(devices)} 个设备的电量信息")
             
             # 检查每个设备的电量
             low_battery_devices = []
-            for device in records:
-                device_id = device.get("id")
-                device_name = device.get("name", "未知设备")
+            for device in devices:
+                device_id = device.get("device_id")
+                device_name = device.get("device_name", "未知设备")
                 power = device.get("power", 100)  # 默认100%以防数据缺失
                 
                 # 检查电量是否低于阈值
                 if power < self._low_battery_threshold:
                     # 使用设备ID作为唯一标识
-                    device_key = f"{device_id}_{device_name}"
+                    device_key = f"{device_id}"
                     
                     # 检查是否已经通知过
                     last_notified_power = self._last_notified_devices.get(device_key)
@@ -94,11 +88,12 @@ class BatteryLoop:
                         })
                         # 更新记录
                         self._last_notified_devices[device_key] = power
+                        logger.info(f"设备 {device_name} 电量 {power}% 低于阈值，需要通知")
                     else:
                         logger.info(f"设备 {device_name} 电量 {power}% 已通知过，跳过")
                 else:
                     # 如果电量恢复正常，清除通知记录
-                    device_key = f"{device_id}_{device_name}"
+                    device_key = f"{device_id}"
                     if device_key in self._last_notified_devices:
                         logger.info(f"设备 {device_name} 电量已恢复至 {power}%，清除通知记录")
                         del self._last_notified_devices[device_key]
@@ -108,9 +103,6 @@ class BatteryLoop:
                 self._send_low_battery_notification(low_battery_devices)
             else:
                 logger.info("所有设备电量正常")
-                
-            # 关闭会话
-            qb_location.close()
                 
         except Exception as e:
             logger.error(f"处理电量检测时出错: {e}")
@@ -152,3 +144,8 @@ class BatteryLoop:
         """设置低电量阈值（百分比）"""
         self._low_battery_threshold = threshold
         logger.info(f"低电量阈值设置为 {threshold}%")
+    
+    def set_check_time(self, hour: int, minute: int):
+        """设置每天检查的时间"""
+        self._check_time = dt_time(hour, minute)
+        logger.info(f"电量检测时间设置为 {hour:02d}:{minute:02d}")
