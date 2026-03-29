@@ -4,6 +4,9 @@ Processor package for handling different types of messages
 """
 
 import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 from .coord_transfrom import CoordTransform
 from .qb_location import QBLocation

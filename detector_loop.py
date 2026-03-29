@@ -7,6 +7,7 @@ from config import ConfigManager
 from detector.reminder_loop import ReminderLoop
 from detector.dsm_loop import DsmLoop
 from detector.exam_loop import ExamLoop
+from detector.battery_loop import BatteryLoop
 
 # 设置日志
 logger = logging.getLogger(__name__)
@@ -26,8 +27,11 @@ class DetectorLoop:
         self.register_processor("dsm_loop", DsmLoop(self.wxauto_client, env_file))
         logger.info("注册DSM开门记录处理器...")
 
-        self.register_processor("excm_loop", ExamLoop(self.wxauto_client))
+        self.register_processor("exam_loop", ExamLoop(self.wxauto_client))
         logger.info("注册考试成绩查询处理器...")
+
+        self.register_processor("battery_loop", BatteryLoop(self.wxauto_client, env_file))
+        logger.info("注册电量检测处理器...")
 
     def set_interval(self, name: str, interval: int):
         """设置处理器的运行间隔"""
